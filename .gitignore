@@ -4,13 +4,10 @@
 # no GitHub Pages (branch gh-pages) pelo workflow em .github/workflows.
 # ============================================================
 
-# Documentação e arquivos auxiliares (não fazem parte do site)
-*.md
-layout.md
-*.md~
-logodental.png
-logo.jpg
-logo_di.jpeg
+# Imagens-fonte da raiz (não fazem parte do site publicado)
+/logodental.png
+/logo.jpg
+/logo_di.jpeg
 
 # Licença é opcional versionar; mantida fora do site publicado
 LICENSE
