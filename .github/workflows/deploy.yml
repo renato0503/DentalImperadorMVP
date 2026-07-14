@@ -4,50 +4,14 @@ on:
   push:
     branches: [ main ]
 
-permissions:
-  contents: write
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          fetch-depth: 0
-
-      - name: Configure Git
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-      - name: Prepare site files (preserve before switching branch)
-        run: |
-          set -e
-          if [ ! -d "mvp" ]; then
-            echo "ERROR: mvp directory not found on main branch"; exit 1
-          fi
-          TMPDIR=$(mktemp -d)
-          echo "Copying mvp to $TMPDIR"
-          cp -a mvp/. "$TMPDIR/"
-
-      - name: Prepare gh-pages branch and restore site
-        run: |
-          set -e
-          if git show-ref --quiet refs/heads/gh-pages; then
-            git checkout gh-pages
-            git rm -rf . || true
-          else
-            git checkout --orphan gh-pages
-            git rm -rf . || true
-          fi
-          echo "Restoring site files from temp"
-          cp -a "$TMPDIR"/. .
-
-      - name: Commit and push
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git add -A
-          git commit -m "Deploy MVP to gh-pages" || echo "No changes to commit"
-          git push --force origin gh-pages
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./mvp
