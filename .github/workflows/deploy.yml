@@ -21,8 +21,19 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-      - name: Prepare gh-pages branch
+      - name: Prepare site files (preserve before switching branch)
         run: |
+          set -e
+          if [ ! -d "mvp" ]; then
+            echo "ERROR: mvp directory not found on main branch"; exit 1
+          fi
+          TMPDIR=$(mktemp -d)
+          echo "Copying mvp to $TMPDIR"
+          cp -a mvp/. "$TMPDIR/"
+
+      - name: Prepare gh-pages branch and restore site
+        run: |
+          set -e
           if git show-ref --quiet refs/heads/gh-pages; then
             git checkout gh-pages
             git rm -rf . || true
@@ -30,14 +41,8 @@ jobs:
             git checkout --orphan gh-pages
             git rm -rf . || true
           fi
-
-      - name: Copy site files
-        run: |
-          if [ -d "mvp" ]; then
-            cp -a mvp/. .
-          else
-            echo "ERROR: mvp directory not found"; exit 1
-          fi
+          echo "Restoring site files from temp"
+          cp -a "$TMPDIR"/. .
 
       - name: Commit and push
         env:
