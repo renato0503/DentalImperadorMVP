@@ -9,8 +9,12 @@
 /logo.jpg
 /logo_di.jpeg
 
-# Licença é opcional versionar; mantida fora do site publicado
-LICENSE
+# Documentação de projeto (não faz parte do site publicado)
+/context.md
+/MVP.md
+/contrato_de_acordo_comercial.md
+/restored_context.md
+/implementation.md
 
 # SO não versiona
 .DS_Store
