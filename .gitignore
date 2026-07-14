@@ -1,0 +1,18 @@
+# ============================================================
+# Dental Imperador — .gitignore
+# Mantém apenas a pasta do MVP para o deploy no GitHub Pages.
+# (O workflow de deploy publica ./mvp; o .github deve continuar versionado.)
+# ============================================================
+
+# Ignora TUDO por padrão
+*
+
+# Exceções: mantém o site MVP e o pipeline de deploy
+!.gitignore
+!.github/
+!.github/**
+!mvp/
+!mvp/**
+
+# Mantém a licença (opcional)
+!LICENSE
