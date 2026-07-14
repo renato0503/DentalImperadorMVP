@@ -1,18 +1,21 @@
 # ============================================================
 # Dental Imperador — .gitignore
-# Mantém apenas a pasta do MVP para o deploy no GitHub Pages.
-# (O workflow de deploy publica ./mvp; o .github deve continuar versionado.)
+# O site estático fica na raiz do repositório e é publicado
+# no GitHub Pages (branch gh-pages) pelo workflow em .github/workflows.
 # ============================================================
 
-# Ignora TUDO por padrão
-*
+# Documentação e arquivos auxiliares (não fazem parte do site)
+*.md
+layout.md
+*.md~
+logodental.png
+logo.jpg
+logo_di.jpeg
 
-# Exceções: mantém o site MVP e o pipeline de deploy
-!.gitignore
-!.github/
-!.github/**
-!mvp/
-!mvp/**
+# Licença é opcional versionar; mantida fora do site publicado
+LICENSE
 
-# Mantém a licença (opcional)
-!LICENSE
+# SO não versiona
+.DS_Store
+Thumbs.db
+*.log
