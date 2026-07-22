@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../../lib/auth";
+import { NotificationBell } from "../notifications/NotificationBell";
 
 export function Header() {
   const { user, userData, logout, isAdmin } = useAuth();
@@ -46,6 +47,7 @@ export function Header() {
               Entrar
             </a>
           )}
+          <NotificationBell />
           <button
             className="theme-toggle"
             onClick={() => setDark(!dark)}

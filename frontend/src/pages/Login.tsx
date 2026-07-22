@@ -1,14 +1,20 @@
-import { useState, type FormEvent } from "react";
-import { useAuth } from "../lib/auth";
+import { useState, useEffect, type FormEvent } from "react";
+import { useAuth, ROLE_HOME } from "../lib/auth";
 import { useNavigate } from "react-router-dom";
 
 export function LoginPage() {
-  const { login } = useAuth();
+  const { login, userData, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (userData && !authLoading) {
+      navigate(ROLE_HOME[userData.papel] || "/", { replace: true });
+    }
+  }, [userData, authLoading, navigate]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -16,10 +22,8 @@ export function LoginPage() {
     setLoading(true);
     try {
       await login(email, password);
-      navigate("/");
-    } catch (err) {
+    } catch {
       setError("Email ou senha inválidos");
-    } finally {
       setLoading(false);
     }
   };
@@ -31,22 +35,11 @@ export function LoginPage() {
         <form onSubmit={handleSubmit}>
           <label>
             Email
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              autoFocus
-            />
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus />
           </label>
           <label>
             Senha
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
           </label>
           {error && <p className="form-error">{error}</p>}
           <button className="btn btn-primary" type="submit" disabled={loading}>
