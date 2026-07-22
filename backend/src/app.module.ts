@@ -12,6 +12,7 @@ import { WarehouseModule } from "./warehouse/warehouse.module";
 import { ReportsModule } from "./reports/reports.module";
 import { HealthModule } from "./health/health.module";
 import { AdminModule } from "./admin/admin.module";
+import { CrmModule } from "./crm/crm.module";
 import { ApiKeyModule } from "./api-key/api-key.module";
 
 @Module({
@@ -30,6 +31,7 @@ import { ApiKeyModule } from "./api-key/api-key.module";
     HealthModule,
     AdminModule,
     ApiKeyModule,
+    CrmModule,
   ],
 })
 export class AppModule {}
