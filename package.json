@@ -1,0 +1,5 @@
+{
+  "name": "dental-imperador",
+  "private": true,
+  "workspaces": ["frontend", "backend", "firebase/functions"]
+}

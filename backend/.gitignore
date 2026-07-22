@@ -1,0 +1,12 @@
+# Chave de conta de serviço Firebase
+firebase-service-account*.json
+
+# Ambiente
+.env
+.env.local
+
+# Build
+dist/
+
+# Dependências
+node_modules/
