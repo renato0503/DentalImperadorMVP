@@ -318,4 +318,62 @@ Regras de negócio para categorizar automaticamente cada cliente:
 
 ---
 
-> **Próximo passo:** Iniciar Sprint 13 — CRM Enriquecido + Clusterização de Clientes.
+---
+
+## Plano de Ação — Sprints Finais (19–20)
+
+### Diagnóstico Atual
+
+```
+✅ 18 de 20 sprints concluídas (90%)
+🔴 5 pendências técnicas blocantes
+⏳ 2 sprints restantes (19 = 1 semana, 20 = 2 semanas)
+```
+
+### 🔴 Bloqueios Críticos para Resolver na Sprint 19
+
+| # | Tarefa | Passo a passo | Tempo estimado |
+|---|---|---|---|
+| 1 | **GROQ_API_KEY** | 1. Acessar https://console.groq.com → API Keys → Create Key<br>2. `firebase functions:secrets:set GROQ_API_KEY`<br>3. `firebase deploy --only functions:callGroq` | 15 min |
+| 2 | **CSP / Analytics** | 1. `curl.exe -sI https://dentalimperador.web.app/` verificar CSP<br>2. Se correto → hard refresh (Ctrl+Shift+R) no navegador<br>3. Se ainda erro → testar em janela anônima ou no outro domínio | 10 min |
+| 3 | **CI/CD Firebase** | 1. `firebase login:ci` → copiar token<br>2. GitHub: Settings → Secrets → `FIREBASE_TOKEN` = token<br>3. Re-run workflow | 10 min |
+| 4 | **DATABASE_URL** | 1. Firebase Console → Data Connect → copiar connection string<br>2. Colar em `backend/.env` como `DATABASE_URL`<br>3. `npx prisma migrate dev --name init` | 20 min |
+| 5 | **Testes** | 1. `cd backend && npx jest`<br>2. `cd frontend && npx vitest run` (se configurado)<br>3. Documentar resultado | 15 min |
+
+Total estimado Sprint 19: **~1h de trabalho + 30min de espera (deploy)**
+
+### Sprint 20 — Chatbot→CRM + WhatsApp + Finalização
+
+| Dia | Tarefas | Entrega |
+|---|---|---|
+| **Dia 1** | Backend: `POST /crm/auto-create-lead` com round-robin | Lead criado via API |
+| **Dia 2** | Frontend: Chatbot exibe "vendedor entrará em contato" + lead no Kanban | Fluxo chatbot→CRM completo |
+| **Dia 3** | Backend: Webhook mock WhatsApp + Frontend: aba WhatsApp no perfil | WhatsApp integrado |
+| **Dia 4** | QA Final: testar 15 fluxos por papel + corrigir bugs | Homologação |
+| **Dia 5** | Documentação final + deploy + tag v3.0.0 | Release final |
+
+### Checklist de Qualidade (QA Final)
+
+Antes de liberar a versão final, verificar:
+
+```
+☐ Visitante → Landing → Chatbot → Triagem → Conversa
+☐ Chatbot → Criar lead → Lead no Kanban
+☐ Orçamento → Catálogo → Carrinho → Proposta
+☐ Pedido → Buscar nº → Timeline
+☐ Login → Redirect por papel
+☐ Admin → Dashboard KPIs → Gráficos → SLA
+☐ Manager → Métricas Vendas → Funil → Ranking
+☐ Operator → Picking → Pendentes → Concluir
+☐ CRM → Kanban → Arrastar → Atribuir vendedor
+☐ Perfil 360° → Timeline → Notas → Abas
+☐ Notificações → Sino → Dropdown → Clique → Ação
+☐ Mobile ( < 1024px ) → Bottom nav → Drawer → Touch
+☐ Dark Mode → Toggle → Persistência
+☐ CSP não bloqueia Analytics
+☐ API Key → curl com x-api-key → 200
+```
+
+---
+
+> **Estratégia para amanhã:** Começar pela Sprint 19 — resolver os 5 blocantes em sequência (GROQ → CSP → CI/CD → PostgreSQL → Testes). Depois Sprint 20 com as features finais. Total estimado: **~3 dias de trabalho** para finalizar a plataforma.
