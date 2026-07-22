@@ -1,0 +1,110 @@
+openapi: 3.0.3
+info:
+  title: Dental Imperador API
+  description: API pública B2B para integração com sistemas parceiros. Recursos: produtos, pedidos, clientes, relatórios e métricas.
+  version: 1.0.0
+  contact:
+    name: Dental Imperador
+    url: https://dentalimperador.web.app
+    email: vendas@dentalimperador.com.br
+servers:
+  - url: https://api.dentalimperador.com.br
+    description: Produção
+  - url: http://localhost:3001
+    description: Desenvolvimento
+paths:
+  /api/v1/products:
+    get:
+      summary: Listar produtos
+      description: Retorna o catálogo de produtos odontológicos.
+      parameters:
+        - in: query
+          name: categoria
+          schema: { type: string }
+          description: Filtrar por categoria
+      responses:
+        '200':
+          description: Lista de produtos
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Product' }
+  /api/v1/orders/{numero}:
+    get:
+      summary: Consultar pedido
+      description: Retorna dados de um pedido pelo número.
+      parameters:
+        - in: path
+          name: numero
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Dados do pedido
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Order' }
+  /api/v1/customers:
+    get:
+      summary: Listar clientes
+      parameters:
+        - in: query
+          name: status
+          schema: { type: string }
+        - in: query
+          name: segmento
+          schema: { type: string }
+      responses:
+        '200':
+          description: Lista de clientes
+  /api/v1/admin/metrics:
+    get:
+      summary: Métricas do dashboard
+      responses:
+        '200':
+          description: KPIs consolidadas
+  /api/v1/reports/summary:
+    get:
+      summary: Resumo de relatórios
+      responses:
+        '200':
+          description: Métricas agregadas
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-api-key
+      description: Chave de API fornecida pela Dental Imperador
+  schemas:
+    Product:
+      type: object
+      properties:
+        id: { type: string }
+        sku: { type: string }
+        nome: { type: string }
+        categoria: { type: string }
+        preco_tabela: { type: number }
+        ncm: { type: string }
+        controlado_anvisa: { type: boolean }
+    Order:
+      type: object
+      properties:
+        id: { type: string }
+        numero: { type: string }
+        cliente: { type: string }
+        status: { type: string }
+        valor_total: { type: number }
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/OrderItem' }
+    OrderItem:
+      type: object
+      properties:
+        sku: { type: string }
+        produto: { type: string }
+        quantidade: { type: integer }
+        preco_unit: { type: number }
+security:
+  - ApiKeyAuth: []

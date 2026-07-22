@@ -1,10 +1,12 @@
 import { Controller, Get } from "@nestjs/common";
 import { CacheService } from "../cache/cache.service";
+import { Public } from "../api-key/api-key.guard";
 
 @Controller()
 export class HealthController {
   constructor(private cache: CacheService) {}
 
+  @Public()
   @Get("health")
   health() {
     return {
