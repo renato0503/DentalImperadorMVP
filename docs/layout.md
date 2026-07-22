@@ -1,25 +1,35 @@
-## O que existe hoje no MVP
+## O que existe hoje no MVP (ATUALIZADO — 2026-07-14)
 
-**Apenas 1 tela:** o chatbot básico (`mvp/index.html`) com CSS e JS mockados.
+**MVP funcional estático ENTREGUE** como site multi-páginas em HTML/CSS/JS puro, com dados mockados, publicado no GitHub Pages a partir da raiz do repositório (https://renato0503.github.io/DentalImperadorMVP/).
 
-## O que deveria existir segundo o ![](<vscode-file://vscode-app/c:/Users/Renato/AppData/Local/Programs/Antigravity%20IDE/resources/app/extensions/theme-symbols/src/icons/files/markdown.svg>)
+## Status de implementação das telas (Sprints 1-4)
 
-context.md e ![](<vscode-file://vscode-app/c:/Users/Renato/AppData/Local/Programs/Antigravity%20IDE/resources/app/extensions/theme-symbols/src/icons/files/markdown.svg>)
+| Tela | Descrição | Status |
+| --- | --- | --- |
+| **Chatbot** | Chat com triagem, orçamento e status de pedido | Entregue (mock interativo) |
+| **Orçamento automático** | Consulta catálogo e gera proposta | Entregue |
+| **Status de Pedido** | Consulta status (Faturado, Entregue, Separado...) | Entregue |
+| **Dashboard** | Métricas de aquisição, NPS, conversão | Entregue (Chart.js, mock) |
+| **CRM / Kanban** | Pipeline de leads e clientes | Entregue (drag-and-drop) |
+| **Landing Page** | Apresentação + Sobre + footer com categorias | Entregue |
+| **Login (Firebase Auth)** | Previsto nos Sprints | Pendente (não está no protótipo estático) |
 
-implementation.md
+Telas: `index.html`, `chatbot.html`, `orcamento.html`, `pedido.html`, `dashboard.html`, `crm.html`.
+Design segue o Media Kit abaixo (Verde Imperador `#00A650`, Vermelho Dental `#E31E24`, Montserrat + Inter).
 
-O MVP (Sprints 1-4) prevê  **várias telas** :
+---
 
-| Tela                               | Descrição                                       | Status                               |
-| ---------------------------------- | ------------------------------------------------- | ------------------------------------ |
-| 🤖**Chatbot**                | Chat com triagem, orçamento e status de pedido   | ⚠️ Existe mas só com mock básico |
-| 📋**Orçamento automático** | Consulta catálogo e gera proposta                | ❌ Não existe                       |
-| 📦**Status de Pedido**       | Consulta status (Faturado, Entregue, Separado...) | ❌ Não existe                       |
-| 📊**Dashboard**              | Métricas de aquisição, NPS, conversão         | ❌ Não existe                       |
-| 👥**CRM / Kanban**           | Pipeline de leads e clientes                      | ❌ Não existe                       |
-| 🔐**Login**                  | Firebase Auth                                     | ❌ Não existe                       |
+> A partir daqui, o **Media Kit original** usado como referência de design (mantido para consulta):
 
-**Ou seja: falta praticamente tudo além do esqueleto do chatbot.**
+Quer que eu crie essas telas agora como um **MVP funcional estático** (HTML/CSS/JS puro, com dados mockados) para rodar no GitHub Pages? Seria um site multi-páginas bonito e funcional com:
+
+1. **Landing Page** – apresentação da Dental Imperador
+2. **Chatbot** – versão melhorada com triagem e orçamento mock
+3. **Dashboard** – gráficos e métricas (mockados)
+4. **Status de Pedido** – consulta de status (mock)
+5. **CRM Kanban** – pipeline visual (mock)
+
+Tudo estático, sem backend, pronto para GitHub Pages. Quer que eu faça?
 
 ---
 

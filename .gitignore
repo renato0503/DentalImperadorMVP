@@ -4,19 +4,42 @@
 # no GitHub Pages (branch gh-pages) pelo workflow em .github/workflows.
 # ============================================================
 
-# Imagens-fonte da raiz (não fazem parte do site publicado)
-/logodental.png
-/logo.jpg
-/logo_di.jpeg
-
-# Documentação de projeto (não faz parte do site publicado)
-/context.md
-/MVP.md
-/contrato_de_acordo_comercial.md
-/restored_context.md
-/implementation.md
-
 # SO não versiona
 .DS_Store
 Thumbs.db
 *.log
+
+# ============================================================
+# Ambiente e segredos (NUNCA versionar)
+# ============================================================
+
+# Variáveis de ambiente
+.env
+.env.local
+.env.production
+.env.development
+.env.staging
+
+# Diretórios de ambiente virtual Python
+.venv
+venv/
+venv.bak/
+
+# node_modules (quando o monorepo for criado)
+node_modules/
+**/node_modules/
+
+# Diretórios de build
+dist/
+build/
+.next/
+
+# Chave de conta de serviço Firebase (NUNCA versionar)
+scripts/service-account*.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
