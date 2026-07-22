@@ -19,6 +19,7 @@ const PickingMonitor = lazy(() => import("./pages/warehouse/PickingMonitor").the
 const ReportsPage = lazy(() => import("./pages/reports/ReportsPage").then((m) => ({ default: m.ReportsPage })));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard").then((m) => ({ default: m.AdminDashboard })));
 const MeuPainel = lazy(() => import("./pages/MeuPainel").then((m) => ({ default: m.MeuPainel })));
+const SalesMetricsPage = lazy(() => import("./pages/SalesMetrics").then((m) => ({ default: m.SalesMetricsPage })));
 const PerfilPage = lazy(() => import("./pages/Perfil").then((m) => ({ default: m.PerfilPage })));
 
 function Loading() {
@@ -48,6 +49,7 @@ export default function App() {
                   <Route path="/campanhas" element={<ProtectedRoute resource="campanhas"><CampaignsPage /></ProtectedRoute>} />
                   <Route path="/picking" element={<ProtectedRoute resource="picking"><PickingMonitor /></ProtectedRoute>} />
                   <Route path="/relatorios" element={<ProtectedRoute resource="relatorios"><ReportsPage /></ProtectedRoute>} />
+                  <Route path="/metricas-vendas" element={<ProtectedRoute resource="relatorios"><SalesMetricsPage /></ProtectedRoute>} />
                   <Route path="/admin" element={<ProtectedRoute resource="admin"><AdminDashboard /></ProtectedRoute>} />
                   <Route path="/meu-painel" element={<MeuPainel />} />
                   <Route path="/perfil" element={<PerfilPage />} />

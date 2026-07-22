@@ -25,6 +25,7 @@ const STAFF_LINKS: SidebarSection[] = [
     { href: "/admin", label: "Admin", icon: "shield", roles: ["admin"] },
     { href: "/dashboard", label: "Comercial", icon: "bar-chart", roles: ["admin", "manager", "operator"] },
     { href: "/relatorios", label: "Relatórios", icon: "file-text", roles: ["admin", "manager", "operator"] },
+    { href: "/metricas-vendas", label: "Métricas Vendas", icon: "bar-chart", roles: ["admin", "manager"] },
   ]},
   { title: "GESTÃO", links: [
     { href: "/crm", label: "CRM", icon: "users", roles: ["admin", "manager", "operator"] },
