@@ -25,8 +25,8 @@
 | **12** | Release Final & Pós-Lançamento | ✅ Concluído | 2026-07-22 | Deploy Firebase Hosting, tag v2.0.0, CHANGELOG, manual, FAQ, runbook |
 | **13** | CRM Enriquecido + Clusterização | ✅ Concluído | 2026-07-22 | Customer enriquecido (8 campos novos), clusters (ticket/frequência/segmento), Kanban 6 colunas, Sales Alerts, modal lead |
 | **14** | Perfil 360° + Timeline do Cliente | ✅ Concluído | 2026-07-22 | /crm/cliente/:id com timeline, pedidos, orçamentos, notas, score ring, aba de notas |
-| **15** | Sidebar por Papel + Meu Painel + Perfil | ⏳ Pendente | — | Sidebar agrupada, MobileNav/Drawer por role, /meu-painel, /perfil, redirect pós-login |
-| **16** | Notificações + Salvaguarda | ⏳ Pendente | — | NotificationBell, regras de alerta (lead parado, churn, proposta sem retorno), badges |
+| **15** | Sidebar por Papel + Meu Painel + Perfil | ✅ Concluído | 2026-07-22 | Sidebar agrupada (DASHBOARDS/GESTÃO/OPERAÇÕES/SISTEMA), /meu-painel, /perfil, redirect pós-login por role |
+| **16** | Notificações + Salvaguarda | ✅ Concluído | 2026-07-22 | NotificationBell, endpoints GET/PATCH /notifications, 6 regras de alerta, badge de contagem |
 | **17** | Landing Adaptativa + Onboarding | ⏳ Pendente | — | Hero por papel, tour primeiro login, reset senha, FAQ interativo |
 | **18** | Métricas de Vendas + Reports | ⏳ Pendente | — | Funil, ranking vendedores, projeção receita, tempo médio por etapa |
 | **19** | Chatbot → CRM (Automação Lead) | ⏳ Pendente | — | Lead automático via triagem, atribuição round-robin, qualificação por IA |
@@ -426,8 +426,8 @@ Após a conclusão das 12 sprints do MVP, a plataforma agora entra na **Fase 2: 
 | 12 | 2 sem | Release final, documentação, suporte e rollout canário | ✅ |
 | 13 | 2 sem | CRM enriquecido + clusterização de clientes (ticket, frequência, segmento) | ✅ |
 | 14 | 2 sem | Perfil 360° do cliente + timeline de interações | ✅ |
-| 15 | 2 sem | Sidebar por papel + Meu Painel + Perfil + redirect pós-login | ⏳ |
-| 16 | 2 sem | Sistema de notificações + salvaguarda (sales alerts + regras de follow-up) | ⏳ |
+| 15 | 2 sem | Sidebar por papel + Meu Painel + Perfil + redirect pós-login | ✅ |
+| 16 | 2 sem | Sistema de notificações + salvaguarda (sales alerts + regras de follow-up) | ✅ |
 | 17 | 2 sem | Landing adaptativa + onboarding tour + autoatendimento | ⏳ |
 | 18 | 2 sem | Métricas de vendas + reports por vendedor (funil, conversão, previsão) | ⏳ |
 | 19 | 2 sem | Integração Chatbot → CRM + automação de lead (round-robin) | ⏳ |

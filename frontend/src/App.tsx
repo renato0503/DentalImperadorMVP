@@ -18,6 +18,8 @@ const CampaignsPage = lazy(() => import("./pages/churn/Campaigns").then((m) => (
 const PickingMonitor = lazy(() => import("./pages/warehouse/PickingMonitor").then((m) => ({ default: m.PickingMonitor })));
 const ReportsPage = lazy(() => import("./pages/reports/ReportsPage").then((m) => ({ default: m.ReportsPage })));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard").then((m) => ({ default: m.AdminDashboard })));
+const MeuPainel = lazy(() => import("./pages/MeuPainel").then((m) => ({ default: m.MeuPainel })));
+const PerfilPage = lazy(() => import("./pages/Perfil").then((m) => ({ default: m.PerfilPage })));
 
 function Loading() {
   return <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "60vh", color: "#6B7280" }}>Carregando...</div>;
@@ -47,6 +49,8 @@ export default function App() {
                   <Route path="/picking" element={<ProtectedRoute resource="picking"><PickingMonitor /></ProtectedRoute>} />
                   <Route path="/relatorios" element={<ProtectedRoute resource="relatorios"><ReportsPage /></ProtectedRoute>} />
                   <Route path="/admin" element={<ProtectedRoute resource="admin"><AdminDashboard /></ProtectedRoute>} />
+                  <Route path="/meu-painel" element={<MeuPainel />} />
+                  <Route path="/perfil" element={<PerfilPage />} />
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
               </Suspense>

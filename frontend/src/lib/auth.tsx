@@ -24,6 +24,13 @@ export interface UserData {
   ativo: boolean;
 }
 
+export const ROLE_HOME: Record<UserRole, string> = {
+  admin: "/admin",
+  manager: "/dashboard",
+  operator: "/picking",
+  cliente: "/meu-painel",
+};
+
 interface AuthContextType {
   user: User | null;
   userData: UserData | null;
@@ -31,6 +38,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   isAdmin: boolean;
+  roleHome: string;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -73,6 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         logout,
         isAdmin: userData?.papel === "admin",
+        roleHome: userData ? ROLE_HOME[userData.papel] || "/" : "/",
       }}
     >
       {children}
