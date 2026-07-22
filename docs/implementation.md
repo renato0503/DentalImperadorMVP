@@ -29,8 +29,8 @@
 | **16** | Notificações + Salvaguarda | ✅ Concluído | 2026-07-22 | NotificationBell, endpoints GET/PATCH /notifications, 6 regras de alerta, badge de contagem |
 | **17** | Landing Adaptativa + Onboarding | ✅ Concluído | 2026-07-22 | Hero por papel (admin/manager/operator/cliente/visitante), onboarding tour 4 passos, reset de senha Firebase |
 | **18** | Métricas de Vendas + Reports | ✅ Concluído | 2026-07-22 | Funil de vendas (bar horizontal), ranking vendedores, projeção receita, leads quentes |
-| **19** | Chatbot → CRM (Automação Lead) | ⏳ Pendente | — | Lead automático via triagem, atribuição round-robin, qualificação por IA |
-| **20** | Integração WhatsApp | ⏳ Pendente | — | Webhook WhatsApp mock, timeline unificada, botão "Abrir WhatsApp" |
+| **19** | Pendências Técnicas (GROQ, CSP, CI/CD, PostgreSQL) | ⏳ Pendente | — | GROQ_API_KEY configurada, CSP corrigido, CI/CD verde, PostgreSQL rodando, testes baseline |
+| **20** | Chatbot→CRM + WhatsApp + QA Final | ⏳ Pendente | — | Lead automático via triagem, webhook WhatsApp, 15 fluxos testados, docs finalizadas |
 
 **Legenda:** ✅ Concluído | 🔄 Em andamento | ⏳ Pendente | ❌ Bloqueado
 
@@ -382,28 +382,57 @@ Após a conclusão das 12 sprints do MVP, a plataforma agora entra na **Fase 2: 
 
 ---
 
-### Sprint 19 — Integração Chatbot → CRM + Automação de Lead (2 semanas)
+### Sprint 19 — Resolver Pendências Técnicas + Ajustes Finais (1 semana)
+
+**Objetivo:** Antes de iniciar novas features, estabilizar o que já existe. Resolver todos os bloqueios técnicos que estão pendentes desde as sprints iniciais.
 
 | Área | Tarefas | Resultado |
 |---|---|---|
-| **Backend** | • Ao final da triagem do chatbot, criar lead automaticamente no CRM<br>• Endpoint `POST /crm/auto-create-lead` — recebe dados da triagem, cria lead e atribui vendedor (round-robin ou least-loaded)<br>• Webhook para quando lead é criado via WhatsApp (mock)<br>• Job diário: leads sem interação > 7 dias → mover para "inativo" | Automação de criação de leads |
-| **Frontend** | • Chatbot → após triagem → "Um vendedor entrará em contato em até 24h"<br>• Lead aparece automaticamente no Kanban do vendedor<br>• Notificação push interna quando novo lead é atribuído | Lead do chatbot → CRM automaticamente |
-| **AI** | • Prompt Groq ajustado para qualificar leads (perguntar CNPJ, segmento, necessidade)<br>• Se lead qualificado → prioridade alta na atribuição | Chatbot como funil de vendas |
-| **QA** | • Testar fluxo completo: chatbot → triagem → lead no Kanban<br>• Testar atribuição round-robin com 3 vendedores mock | Pipeline chatbot→CRM testado |
+| **GROQ_API_KEY** | • Criar conta em https://console.groq.com<br>• Copiar API Key<br>• Executar `firebase functions:secrets:set GROQ_API_KEY`<br>• Re-deploy da Cloud Function: `firebase deploy --only functions:callGroq` | Chatbot com IA funcional |
+| **CSP / Analytics** | • Verificar headers CSP atuais com `curl.exe -sI https://dentalimperador.web.app/`<br>• Se a meta tag no HTML já tem `google-analytics.com` e `google.com`, forçar hard refresh no navegador (Ctrl+Shift+R)<br>• Se ainda falhar, remover CSP do firebase.json e deixar apenas a meta tag | Analytics coletando dados |
+| **Firebase CI/CD** | • No terminal: `firebase login:ci` → copiar token<br>• No GitHub: Settings > Secrets > `FIREBASE_TOKEN` = token copiado<br>• Workflow já usa `FIREBASE_SERVICE_ACCOUNT` — trocar para `FIREBASE_TOKEN` se a org não permitir criar chaves | CI/CD verde no GitHub Actions |
+| **PostgreSQL / Data Connect** | • Verificar string de conexão no Firebase Console (Data Connect)<br>• Configurar `DATABASE_URL` no `backend/.env`<br>• Rodar `npx prisma migrate dev` para criar tabelas<br>• Verificar se Prisma conecta com `npx prisma db push` | Dados relacionais persistidos |
+| **Testes automatizados** | • Rodar `npx jest` no backend para verificar testes existentes<br>• Rodar `npx cypress run` no frontend (se configurado)<br>• Documentar gaps de cobertura | Baseline de qualidade |
+| **Revisão de segurança** | • Verificar se `backend/.env` está no `.gitignore` (já está)<br>• Verificar se `scripts/service-account*.json` está no `.gitignore` (já está)<br>• Auditar permissões IAM do Firebase | Superfície segura |
 
-**Critério de aceitação:** Lead criado pelo chatbot aparece no Kanban do vendedor automaticamente em segundos.
+**Critério de aceitação:** Chatbot responde com IA. Analytics coleta dados. CI/CD passa verde. PostgreSQL conectado. Testes rodando.
 
 ---
 
-### Sprint 20 — Integração WhatsApp + Canal de Vendas Unificado (2 semanas)
+### Sprint 20 — Chatbot → CRM + Webhooks + Finalização (2 semanas)
 
 | Área | Tarefas | Resultado |
 |---|---|---|
-| **Backend** | • Webhook mock para receber mensagens do WhatsApp<br>• Endpoint `POST /crm/whatsapp/incoming` — recebe msg, cria lead ou associa a cliente existente<br>• Job que sincroniza conversas do WhatsApp com timeline do CRM | Base para integração real com WhatsApp API |
-| **Frontend** | • Aba "WhatsApp" no perfil do cliente — histórico de conversas<br>• Indicador "Contato via WhatsApp" no card do lead<br>• Botão "Abrir WhatsApp" com link direto para o número do cliente | Visibilidade do canal WhatsApp |
-| **UX/UI** | • Bolha de chat do WhatsApp estilizada<br>• Badge "WhatsApp" nos cards do Kanban | Canais unificados no CRM |
+| **Backend** | • Endpoint `POST /api/v1/crm/auto-create-lead` — recebe dados da triagem do chatbot, cria lead com status "lead" e atribui vendedor via round-robin<br>• Webhook mock `POST /api/v1/crm/whatsapp/incoming` — recebe número, mensagem, cria lead ou associa a cliente existente<br>• Job diário (simulado): leads sem interação > 7 dias → mover status para "inativo"<br>• Endpoint `GET /api/v1/crm/leads-pendentes` — leads não atribuídos | Automação de criação de leads |
+| **Frontend** | • Chatbot → após triagem → exibir "Um vendedor entrará em contato em até 24h por WhatsApp"<br>• Lead aparece automaticamente no Kanban sem refresh<br>• Página "Leads Pendentes" — lista de leads não atribuídos com ação rápida de atribuição<br>• Aba "WhatsApp" no perfil do cliente — exibe conversas mock<br>• Botão "Abrir WhatsApp" no card do Kanban e no perfil | Pipeline completo |
+| **AI** | • Ajustar prompt Groq para fazer perguntas de qualificação (CNPJ, segmento, necessidade principal)<br>• Se lead qualificado (respondeu tudo), marcar como prioridade alta | Chatbot como funil de prospecção |
+| **QA Final** | • Testar fluxo completo: visitante → landing → chatbot → triagem → lead no Kanban → atribuição<br>• Testar fluxo WhatsApp: webhook → lead → timeline<br>• Testar todos os 15 links da sidebar para cada papel | Homologação completa |
+| **Documentação Final** | • Revisar `docs/implementation.md` — status final<br>• Revisar `CHANGELOG.md` — sprint 19-20<br>• Revisar `README.md` — informação atualizada | Projeto documentado |
 
-**Critério de aceitação:** Mensagem do WhatsApp é registrada na timeline do cliente e vendedor consegue ver todo o histórico.
+**Critério de aceitação:** Visitante vira lead no CRM automaticamente via chatbot. WhatsApp integrado via webhook mock. Todas as 20 sprints concluídas.
+
+---
+
+### 🔴 Pendências Técnicas (Blocantes)
+
+Estes itens precisam ser resolvidos **antes ou durante a Sprint 19** para o funcionamento correto da plataforma.
+
+| # | Item | Impacto | Como resolver |
+|---|---|---|---|
+| 1 | **GROQ_API_KEY** | Chatbot sem IA (fallback "não configurado") | `firebase functions:secrets:set GROQ_API_KEY` + re-deploy |
+| 2 | **CSP bloqueando Analytics** | GA4 não coleta dados | Verificar cache do navegador ou acessar pelo outro domínio |
+| 3 | **FIREBASE_TOKEN no GitHub** | CI/CD falha no passo de deploy | `firebase login:ci` → salvar como secret `FIREBASE_TOKEN` |
+| 4 | **DATABASE_URL** | Dados mock em vez de PostgreSQL real | Configurar string do Data Connect no `backend/.env` |
+| 5 | **Firebase Admin sem service account** | Backend não consegue verificar tokens | Usar `gcloud auth application-default login` |
+
+---
+
+### 📋 Roadmap Final (Sprints 19-20)
+
+| Sprint | Duração | Foco | Dependências |
+|---|---|---|---|
+| **19** | 1 sem | Resolver pendências técnicas (GROQ, CSP, CI/CD, PostgreSQL, testes) | Nenhuma |
+| **20** | 2 sem | Chatbot→CRM automático, webhook WhatsApp mock, QA final, docs | Sprint 19 concluída |
 
 ---
 
@@ -430,10 +459,10 @@ Após a conclusão das 12 sprints do MVP, a plataforma agora entra na **Fase 2: 
 | 16 | 2 sem | Sistema de notificações + salvaguarda (sales alerts + regras de follow-up) | ✅ |
 | 17 | 2 sem | Landing adaptativa + onboarding tour + autoatendimento | ✅ |
 | 18 | 2 sem | Métricas de vendas + reports por vendedor (funil, conversão, previsão) | ✅ |
-| 19 | 2 sem | Integração Chatbot → CRM + automação de lead (round-robin) | ⏳ |
-| 20 | 2 sem | Integração WhatsApp + canal de vendas unificado | ⏳ |
+| 19 | 1 sem | Resolver pendências técnicas (GROQ, CSP, CI/CD, PostgreSQL, testes) | ⏳ |
+| 20 | 2 sem | Chatbot→CRM automático + webhook WhatsApp + QA final + docs | ⏳ |
 
-> **Próximos passos:** Iniciar Sprint 13 — CRM Enriquecido + Clusterização.
+> **Próximos passos:** Iniciar Sprint 19 — Resolver pendências técnicas (GROQ_API_KEY, CSP, CI/CD, PostgreSQL).
 
 ---
 
