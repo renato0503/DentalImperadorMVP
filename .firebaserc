@@ -1,0 +1,22 @@
+{
+  "projects": {
+    "default": "dentalimperador-d2529"
+  },
+  "targets": {
+    "dentalimperador-d2529": {
+      "hosting": {
+        "main": [
+          {
+            "target": "main",
+            "public": "frontend/dist",
+            "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+            "rewrites": [
+              { "source": "**", "destination": "/index.html" }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "etags": {}
+}

@@ -1,0 +1,7 @@
+curl --location 'https://portal.dentalimperador.com.br:9090/flextotal/ws/integracao/D15/consultar' \
+--header 'Accept: application/json' \
+--header 'Authorization: Flexmobile_API QUlPOjA0QUVDMzAyNTc4RjdGQjdDRkJFNDIwMTYxQjhDRDg4' \
+--header 'Connection: keep-alive' \
+--header 'Content-Type: application/json' \
+--header 'Cookie: XSRF-TOKEN="rqrTtk2TOxpwZmeqOO6BunqIwCCZWPTODWIM8ePq0aQ="; access_token=eyJhbGciOiJIUzI1NiJ9.eyJJZGVudFVzZXIiOjI2LCJpYXQiOjE3ODQ2NjI0MDMsImlzcyI6IkZsZXhUb3RhbCIsImV4cCI6MTc4NDY4NDAwM30._fMBJUTYmONRqSWSvlO4YwEK4klsIGOR5poiTFwUFyc' \
+--data '{"DT_INI":"01/01/1900 00:00","DT_FIM":"21/07/2026 15:45","CD_ITEM":[]}'
