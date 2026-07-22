@@ -5,12 +5,14 @@
   "targets": {
     "dentalimperador-d2529": {
       "hosting": {
+        "dentalimperador": [
+          "dentalimperador"
+        ],
         "main": [
-          "dentalimperador.web.app"
+          "dentalimperador-d2529"
         ]
       }
     }
   },
-  "etags": {},
-  "dataconnectEmulatorConfig": {}
+  "etags": {}
 }
