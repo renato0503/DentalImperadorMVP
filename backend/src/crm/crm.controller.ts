@@ -40,6 +40,21 @@ export class CrmController {
     return this.crmService.addNote(id, texto, autor);
   }
 
+  @Get("metrics/salesperson")
+  async getSalespersonMetrics() {
+    return this.crmService.getSalespersonMetrics();
+  }
+
+  @Get("metrics/pipeline")
+  async getPipelineMetrics() {
+    return this.crmService.getPipelineMetrics();
+  }
+
+  @Get("metrics/forecast")
+  async getForecast() {
+    return this.crmService.getForecast();
+  }
+
   @Post("customers/:id/assign")
   async assignVendor(@Param("id") id: string, @Body("vendedor_uid") vendedorUid: string, @Body("vendedor_nome") vendedorNome: string): Promise<CustomerDetail | null> {
     return this.crmService.assignVendor(id, vendedorUid, vendedorNome);

@@ -27,8 +27,8 @@
 | **14** | Perfil 360° + Timeline do Cliente | ✅ Concluído | 2026-07-22 | /crm/cliente/:id com timeline, pedidos, orçamentos, notas, score ring, aba de notas |
 | **15** | Sidebar por Papel + Meu Painel + Perfil | ✅ Concluído | 2026-07-22 | Sidebar agrupada (DASHBOARDS/GESTÃO/OPERAÇÕES/SISTEMA), /meu-painel, /perfil, redirect pós-login por role |
 | **16** | Notificações + Salvaguarda | ✅ Concluído | 2026-07-22 | NotificationBell, endpoints GET/PATCH /notifications, 6 regras de alerta, badge de contagem |
-| **17** | Landing Adaptativa + Onboarding | ⏳ Pendente | — | Hero por papel, tour primeiro login, reset senha, FAQ interativo |
-| **18** | Métricas de Vendas + Reports | ⏳ Pendente | — | Funil, ranking vendedores, projeção receita, tempo médio por etapa |
+| **17** | Landing Adaptativa + Onboarding | ✅ Concluído | 2026-07-22 | Hero por papel (admin/manager/operator/cliente/visitante), onboarding tour 4 passos, reset de senha Firebase |
+| **18** | Métricas de Vendas + Reports | ✅ Concluído | 2026-07-22 | Funil de vendas (bar horizontal), ranking vendedores, projeção receita, leads quentes |
 | **19** | Chatbot → CRM (Automação Lead) | ⏳ Pendente | — | Lead automático via triagem, atribuição round-robin, qualificação por IA |
 | **20** | Integração WhatsApp | ⏳ Pendente | — | Webhook WhatsApp mock, timeline unificada, botão "Abrir WhatsApp" |
 
@@ -428,8 +428,8 @@ Após a conclusão das 12 sprints do MVP, a plataforma agora entra na **Fase 2: 
 | 14 | 2 sem | Perfil 360° do cliente + timeline de interações | ✅ |
 | 15 | 2 sem | Sidebar por papel + Meu Painel + Perfil + redirect pós-login | ✅ |
 | 16 | 2 sem | Sistema de notificações + salvaguarda (sales alerts + regras de follow-up) | ✅ |
-| 17 | 2 sem | Landing adaptativa + onboarding tour + autoatendimento | ⏳ |
-| 18 | 2 sem | Métricas de vendas + reports por vendedor (funil, conversão, previsão) | ⏳ |
+| 17 | 2 sem | Landing adaptativa + onboarding tour + autoatendimento | ✅ |
+| 18 | 2 sem | Métricas de vendas + reports por vendedor (funil, conversão, previsão) | ✅ |
 | 19 | 2 sem | Integração Chatbot → CRM + automação de lead (round-robin) | ⏳ |
 | 20 | 2 sem | Integração WhatsApp + canal de vendas unificado | ⏳ |
 

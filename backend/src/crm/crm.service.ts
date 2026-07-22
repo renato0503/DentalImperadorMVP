@@ -1,4 +1,4 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 
 export interface ClusterDistribution {
   tipo: string;
@@ -134,6 +134,38 @@ export class CrmService {
     c.vendedor_uid = vendedorUid;
     c.vendedor_nome = vendedorNome;
     return c;
+  }
+
+  async getSalespersonMetrics(): Promise<any[]> {
+    const vendors = new Map<string, { nome: string; leads: number; clientes: number; receita: number; ticket_medio: number; conversao: number }>();
+    for (const c of CUSTOMERS) {
+      if (!c.vendedor_uid) continue;
+      const v = vendors.get(c.vendedor_uid) || { nome: c.vendedor_nome || "—", leads: 0, clientes: 0, receita: 0, ticket_medio: 0, conversao: 0 };
+      v.leads++;
+      if (c.status === "cliente") v.clientes++;
+      v.receita += c.total_gasto;
+      vendors.set(c.vendedor_uid, v);
+    }
+    return Array.from(vendors.entries()).map(([uid, v]) => ({
+      vendedor_uid: uid, ...v,
+      ticket_medio: v.clientes > 0 ? Math.round(v.receita / v.clientes) : 0,
+      conversao: v.leads > 0 ? Math.round((v.clientes / v.leads) * 100) : 0,
+    }));
+  }
+
+  async getPipelineMetrics(): Promise<{ etapa: string; quantidade: number; valor: number }[]> {
+    const etapas = ["lead", "contato", "proposta", "negociacao", "cliente"];
+    return etapas.map((etapa) => {
+      const customers = CUSTOMERS.filter((c) => c.status === etapa);
+      return { etapa, quantidade: customers.length, valor: customers.reduce((s, c) => s + c.total_gasto, 0) };
+    });
+  }
+
+  async getForecast(): Promise<{ receita_projetada: number; probabilidade_media: number; leads_quentes: number }> {
+    const leadsQuentes = CUSTOMERS.filter((c) => c.propensao_compra > 70);
+    const receita = leadsQuentes.reduce((s, c) => s + (c.total_gasto || 5000), 0);
+    const probMedia = leadsQuentes.length > 0 ? Math.round(leadsQuentes.reduce((s, c) => s + c.propensao_compra, 0) / leadsQuentes.length) : 0;
+    return { receita_projetada: receita, probabilidade_media: probMedia, leads_quentes: leadsQuentes.length };
   }
 
   private aggregate(data: CustomerDetail[], field: keyof CustomerDetail): ClusterDistribution[] {
