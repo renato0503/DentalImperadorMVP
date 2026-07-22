@@ -11,6 +11,8 @@ import { ChurnModule } from "./churn/churn.module";
 import { WarehouseModule } from "./warehouse/warehouse.module";
 import { ReportsModule } from "./reports/reports.module";
 import { HealthModule } from "./health/health.module";
+import { AdminModule } from "./admin/admin.module";
+import { ApiKeyModule } from "./api-key/api-key.module";
 
 @Module({
   imports: [
@@ -26,6 +28,8 @@ import { HealthModule } from "./health/health.module";
     WarehouseModule,
     ReportsModule,
     HealthModule,
+    AdminModule,
+    ApiKeyModule,
   ],
 })
 export class AppModule {}

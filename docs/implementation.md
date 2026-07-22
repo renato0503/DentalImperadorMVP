@@ -15,10 +15,10 @@
 | **6** | Integração Almoxarifado (Picking) | ✅ Concluído | 2026-07-21 | Eventos picking.start/done, REST /warehouse/pick, tela monitoramento real-time |
 | **7** | Relatórios Avançados | ✅ Concluído | 2026-07-21 | Export CSV, filtros período, 4 abas (resumo/vendas/categorias/produtos), impressão |
 | **8** | Performance & Segurança | ✅ Concluído | 2026-07-21 | Code-splitting, CSP headers, Redis cache, k6 script, health/cache endpoints |
-| **9** | Super Admin | ⏳ Pendente | — | Dashboard consolidado, RBAC, agregações PostgreSQL |
-| **10** | API B2B Externa | ⏳ Pendente | — | OpenAPI 3.0, Gateway JWT, rate limiting, Swagger |
-| **11** | Mobile-first Enhancements | ⏳ Pendente | — | Ajustes <375px, Lighthouse >90, cross-device |
-| **12** | Release Final & Pós-Lançamento | ⏳ Pendente | — | Rollout canário, treinamento, Grafana, docs |
+| **9** | Super Admin | ✅ Concluído | 2026-07-22 | Admin Dashboard, RBAC, layout responsivo mobile/desktop, CSS refactor, Admin API |
+| **10** | API B2B Externa | ✅ Concluído | 2026-07-22 | Swagger UI, ApiKey guard, OpenAPI 3.0 spec, docs portal |
+| **11** | Mobile-first Enhancements | ✅ Concluído | 2026-07-22 | <375px refinements, safe-area, PWAManifest, native feel |
+| **12** | Release Final & Pós-Lançamento | ✅ Concluído | 2026-07-22 | Deploy Firebase Hosting, tag v2.0.0, CHANGELOG, manual, FAQ, runbook |
 
 **Legenda:** ✅ Concluído | 🔄 Em andamento | ⏳ Pendente | ❌ Bloqueado
 
@@ -64,6 +64,19 @@
 | Health Check | ✅ Feito | GET /health (status, uptime, timestamp) |
 | k6 Load Test | ✅ Feito | Script com rampa 20→200 RPS, thresholds de erro <5% e latência p95 <500ms |
 | Firestore unsubscribe | ✅ Auditado | ChatWidget já possui return unsub no useEffect do onSnapshot |
+| CSS Refactor | ✅ Feito | index.css dividido em 7 arquivos temáticos em styles/ |
+| Layout Responsivo | ✅ Feito | Desktop: sidebar+header fixo. Mobile: bottom nav + drawer menu. Breakpoint 1024px |
+| Mobile Navigation | ✅ Feito | MobileNav (5 tabs), MobileHeader (hamburger), DrawerMenu (todos links + logout) |
+| RBAC | ✅ Feito | permissions.ts com 10 recursos, 4 papéis, ProtectedRoute component |
+| Admin Module (backend) | ✅ Feito | GET /admin/metrics, /admin/users, /admin/activity, PATCH /admin/users/:uid/role |
+| Admin Dashboard (frontend) | ✅ Feito | 6 KPIs, 3 charts (bar/doughnut/line), SLA cards, activity feed, user mgmt com role select |
+| Acessibilidade Mobile | ✅ Feito | Touch targets ≥44px, ARIA labels, role="tablist", focus-visible, skip link |
+| Swagger/OpenAPI (backend) | ✅ Feito | Swagger UI em /api/docs, OpenAPI 3.0 spec, api.yaml |
+| ApiKey Guard | ✅ Feito | Middleware global x-api-key, decorator @Public(), demo-key-2026 |
+| API Developer Portal | ✅ Feito | Swagger UI com descrição, servers, schemas, security |
+| Mobile <375px | ✅ Feito | CSS refinado para iPhone SE, fontes reduzidas, padding ajustado |
+| Safe Area (notch) | ✅ Feito | env(safe-area-inset-*) para dispositivos com notch |
+| PWA Manifest | ✅ Feito | Ícones maskable, orientação, categorias, scope, lang pt-BR |
 | PWA Install Prompt | ✅ Feito | Banner customizado com botão "Instalar" |
 | Offline Notice | ✅ Feito | Banner vermelho quando offline |
 | SEO Meta Tags | ✅ Feito | title, description, OG, Twitter Card, keywords |
@@ -294,10 +307,10 @@
 | 6 | 2 sem | Integração Almoxarifado (picking) via Google Cloud Pub/Sub | ✅ |
 | 7 | 2 sem | Relatórios avançados e exportação (PDF/CSV) a partir do banco relacional | ✅ |
 | 8 | 2 sem | Performance (Redis cache, code-splitting) e segurança (IAM, CSP) | ✅ |
-| 9 | 2 sem | Super Admin dashboard consolidado (agregações otimizadas) |
-| 10 | 2 sem | API B2B externa (OpenAPI, Gateway, Rate limiting) |
-| 11 | 2 sem | Mobile-first refinamentos e auditoria Lighthouse |
-| 12 | 2 sem | Release final, documentação, suporte e rollout canário |
+| 9 | 2 sem | Super Admin dashboard consolidado (agregações otimizadas) | ✅ |
+| 10 | 2 sem | API B2B externa (OpenAPI, Gateway, Rate limiting) | ✅ |
+| 11 | 2 sem | Mobile-first refinamentos e auditoria Lighthouse | ✅ |
+| 12 | 2 sem | Release final, documentação, suporte e rollout canário | ✅ |
 
 > **Próximos passos:** Revisar este roadmap com as partes interessadas, validar a disponibilidade dos endpoints do ERP (Lucas) e iniciar a Sprint 0.
 

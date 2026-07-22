@@ -6,17 +6,11 @@
     "dentalimperador-d2529": {
       "hosting": {
         "main": [
-          {
-            "target": "main",
-            "public": "frontend/dist",
-            "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
-            "rewrites": [
-              { "source": "**", "destination": "/index.html" }
-            ]
-          }
+          "dentalimperador.web.app"
         ]
       }
     }
   },
-  "etags": {}
+  "etags": {},
+  "dataconnectEmulatorConfig": {}
 }

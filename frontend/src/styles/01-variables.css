@@ -1,0 +1,41 @@
+:root {
+  --green-imperador: #00A650;
+  --verde-escuro: #007A3D;
+  --vermelho-dental: #E31E24;
+  --vermelho-hover: #FF4757;
+  --carbono: #2C2C2C;
+  --cinza-medio: #6B7280;
+  --cinza-claro: #F3F4F6;
+  --branco: #FFFFFF;
+  --borda: #E5E7EB;
+  --gradient-primary: linear-gradient(135deg, #00A650 0%, #007A3D 100%);
+  --font-head: "Montserrat", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, sans-serif;
+  --verde-10: #F0FDF4;
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.10);
+  --radius: 8px;
+  --sidebar-w: 220px;
+  --header-h: 64px;
+  --mobile-nav-h: 64px;
+  --touch-target: 44px;
+}
+
+[data-theme="dark"] {
+  --carbono: #F3F4F6;
+  --cinza-medio: #9CA3AF;
+  --cinza-claro: #1F2937;
+  --branco: #111827;
+  --borda: #374151;
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+[data-theme="dark"] .site-header,
+[data-theme="dark"] .sidebar,
+[data-theme="dark"] .card,
+[data-theme="dark"] .modal,
+[data-theme="dark"] .login-card,
+[data-theme="dark"] .orcamento-cart { background: #1F2937; }
+[data-theme="dark"] .kanban-card { background: #111827; }
+[data-theme="dark"] .kanban-column { background: #1F2937; }
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea { background: #111827; color: #F3F4F6; border-color: #374151; }

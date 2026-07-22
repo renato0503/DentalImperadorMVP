@@ -1,0 +1,30 @@
+import { Controller, Get, Patch, Param, Body, Query } from "@nestjs/common";
+import { AdminService, type AdminMetrics, type AdminUser, type ActivityItem } from "./admin.service";
+
+@Controller("admin")
+export class AdminController {
+  constructor(private readonly adminService: AdminService) {}
+
+  @Get("metrics")
+  async getMetrics(): Promise<AdminMetrics> {
+    return this.adminService.getMetrics();
+  }
+
+  @Get("users")
+  async getUsers(): Promise<AdminUser[]> {
+    return this.adminService.getUsers();
+  }
+
+  @Patch("users/:uid/role")
+  async updateUserRole(
+    @Param("uid") uid: string,
+    @Body("papel") papel: string
+  ): Promise<AdminUser> {
+    return this.adminService.updateUserRole(uid, papel);
+  }
+
+  @Get("activity")
+  async getActivity(@Query("limit") limit?: string): Promise<ActivityItem[]> {
+    return this.adminService.getActivity(limit ? +limit : 10);
+  }
+}

@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./lib/auth";
 import { AppShell } from "./components/layout/AppShell";
 import { InstallPrompt, OfflineNotice } from "./components/pwa/InstallPrompt";
+import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { HomePage } from "./pages/Home";
 import { LoginPage } from "./pages/Login";
 
@@ -15,13 +16,10 @@ const ChurnDashboard = lazy(() => import("./pages/churn/ChurnDashboard").then((m
 const CampaignsPage = lazy(() => import("./pages/churn/Campaigns").then((m) => ({ default: m.CampaignsPage })));
 const PickingMonitor = lazy(() => import("./pages/warehouse/PickingMonitor").then((m) => ({ default: m.PickingMonitor })));
 const ReportsPage = lazy(() => import("./pages/reports/ReportsPage").then((m) => ({ default: m.ReportsPage })));
+const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard").then((m) => ({ default: m.AdminDashboard })));
 
 function Loading() {
-  return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "60vh", color: "#6B7280" }}>
-      Carregando...
-    </div>
-  );
+  return <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "60vh", color: "#6B7280" }}>Carregando...</div>;
 }
 
 export default function App() {
@@ -32,28 +30,26 @@ export default function App() {
         <OfflineNotice />
         <Routes>
           <Route path="/login" element={<LoginPage />} />
-          <Route
-            path="*"
-            element={
-              <AppShell>
-                <Suspense fallback={<Loading />}>
-                  <Routes>
-                    <Route path="/" element={<HomePage />} />
-                    <Route path="/chatbot" element={<ChatbotPage />} />
-                    <Route path="/dashboard" element={<DashboardPage />} />
-                    <Route path="/orcamento" element={<OrcamentoPage />} />
-                    <Route path="/pedido" element={<PedidoPage />} />
-                    <Route path="/crm" element={<CRMPage />} />
-                    <Route path="/churn" element={<ChurnDashboard />} />
-                    <Route path="/campanhas" element={<CampaignsPage />} />
-                    <Route path="/picking" element={<PickingMonitor />} />
-                    <Route path="/relatorios" element={<ReportsPage />} />
-                    <Route path="*" element={<Navigate to="/" replace />} />
-                  </Routes>
-                </Suspense>
-              </AppShell>
-            }
-          />
+          <Route path="*" element={
+            <AppShell>
+              <Suspense fallback={<Loading />}>
+                <Routes>
+                  <Route path="/" element={<HomePage />} />
+                  <Route path="/chatbot" element={<ChatbotPage />} />
+                  <Route path="/dashboard" element={<ProtectedRoute resource="dashboard"><DashboardPage /></ProtectedRoute>} />
+                  <Route path="/orcamento" element={<OrcamentoPage />} />
+                  <Route path="/pedido" element={<PedidoPage />} />
+                  <Route path="/crm" element={<ProtectedRoute resource="crm"><CRMPage /></ProtectedRoute>} />
+                  <Route path="/churn" element={<ProtectedRoute resource="churn"><ChurnDashboard /></ProtectedRoute>} />
+                  <Route path="/campanhas" element={<ProtectedRoute resource="campanhas"><CampaignsPage /></ProtectedRoute>} />
+                  <Route path="/picking" element={<ProtectedRoute resource="picking"><PickingMonitor /></ProtectedRoute>} />
+                  <Route path="/relatorios" element={<ProtectedRoute resource="relatorios"><ReportsPage /></ProtectedRoute>} />
+                  <Route path="/admin" element={<ProtectedRoute resource="admin"><AdminDashboard /></ProtectedRoute>} />
+                  <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+              </Suspense>
+            </AppShell>
+          } />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
