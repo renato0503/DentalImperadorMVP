@@ -193,4 +193,129 @@ A Sprint 1 foi executada com a arquitetura final definida:
 3. **Sprint 4** — Polimento MVP, SEO, monitoramento
 4. **Sprints 5-12** — Churn, Picking, Relatórios, Super Admin, API B2B
 
-> **Próximo passo imediato:** Configurar variáveis de ambiente (GROQ_API_KEY, DATABASE_URL) e realizar o primeiro deploy do frontend React no Firebase Hosting.
+---
+
+## Fase 2 — Workflow Orientation & CRM Avançado
+
+Após a conclusão da Fase 1 (Sprints 0-12), a plataforma entra na **Fase 2: Organização por Workflows**. O objetivo é reestruturar toda a experiência do usuário com base em **4 personas** com jornadas, permissões e interfaces dedicadas.
+
+### Personas da Plataforma
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│                     DENTAL IMPERADOR                           │
+├──────────────────────────────────────────────────────────────┤
+│                                                               │
+│  👤 CLIENTE           👨‍💼 ADMIN           👔 MANAGER           │
+│  ──────────           ──────────           ──────────           │
+│  Dentistas            Dono/Gerente        Gerente Vendas      │
+│  Clínicas             Superusuário        Supervisor Oper.    │
+│  Estudantes           TI                  Marketing           │
+│  Distribuidores                         │
+│                                                               │
+│                    🔧 OPERATOR                                │
+│                    ───────────                                │
+│                    Almoxarifado                                │
+│                    Suporte                                    │
+│                    Vendedor                                   │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### Workflow por Persona
+
+#### 👤 Cliente (não logado → logado)
+```
+1. Acessa dentalimperador.web.app
+2. Landing: hero com CTA → Chatbot
+3. Chatbot → Triagem → Conversa com IA
+   ├── Pede orçamento → IA consulta catálogo → gera proposta
+   └── Pergunta status → IA consulta API → responde
+4. Orçamento → Catálogo → Carrinho → Proposta
+5. Pedido → Buscar nº → Timeline
+6. [LOGIN] → Meu Painel:
+   ├── Pedidos recentes (sem precisar do nº)
+   ├── Últimos orçamentos
+   └── Chat ativo
+7. Perfil → Editar dados, preferências
+```
+
+#### 👨‍💼 Admin (login → /admin)
+```
+1. Login → Redirect para /admin
+2. Admin Dashboard: KPIs, SLA, gráficos, alertas
+3. 🔔 Notificações: leads não atribuídos, churn alto, pedidos parados
+4. CRM → Kanban completo → atribuir vendedores → ver clusters
+5. Churn + Campanhas → gerir retenção
+6. Relatórios → exportar dados
+7. Usuários → RBAC (gerir papéis)
+8. Perfil → preferências
+```
+
+#### 👔 Manager (login → /dashboard)
+```
+1. Login → Redirect para /dashboard
+2. Dashboard comercial: metas, conversão, funil
+3. CRM → Kanban do time → filtrar por vendedor
+4. Métricas de vendas → ranking vendedores → funil
+5. Churn → campanhas de retenção
+6. Relatórios → exportar por período
+7. Perfil
+```
+
+#### 🔧 Operator (login → /picking)
+```
+1. Login → Redirect para /picking
+2. Picking → pendentes → concluir separação
+3. CRM → atualizar leads
+4. Dashboard → metas diárias
+5. Perfil
+```
+
+### Regras de Salvaguarda (Sales Alerts)
+
+| Regra | Gatilho | Notificar | Prioridade |
+|---|---|---|---|
+| Lead não atribuído | > 24h sem vendedor | Admin | 🔴 Alta |
+| Lead sem contato | > 3 dias sem interação | Vendedor + Admin | 🔴 Alta |
+| Proposta sem retorno | > 5 dias enviada | Vendedor | 🟡 Média |
+| Cliente inativo | > 30 dias sem compra | Vendedor | 🟡 Média |
+| Churn risco alto | Score > 70% | Admin + Manager | 🔴 Alta |
+| Pedido parado | Separação > 2 dias | Operador + Admin | 🔴 Alta |
+
+### Clusterização de Clientes
+
+Regras de negócio para categorizar automaticamente cada cliente:
+
+| Cluster | Regra | Ação sugerida |
+|---|---|---|
+| **Ticket Pequeno** | total_gasto < R$ 5k | Ofertas de upselling |
+| **Ticket Médio** | R$ 5k ≤ total < R$ 20k | Manutenção de relacionamento |
+| **Ticket Grande** | total ≥ R$ 20k | Atendimento premium, visita |
+| **Frequência Recorrente** | compra < 30 dias | Programa de fidelidade |
+| **Frequência Sazonal** | 30-90 dias | Campanha de reativação |
+| **Frequência Inativo** | > 90 dias | Urgência: ação de churn |
+
+### Sidebar por Papel
+
+```
+📱 CLIENTE (logado)      👨‍💼 ADMIN/MANAGER       🔧 OPERATOR
+─────────────────────   ─────────────────────   ─────────────────────
+🏠 Meu Painel            📊 DASHBOARDS           📦 Picking
+💬 Chatbot               ├── Admin              👥 CRM
+📋 Orçamento             ├── Comercial          📊 Dashboard
+📦 Meus Pedidos          └── Relatórios          👤 Perfil
+👤 Perfil                👥 GESTÃO
+                          ├── CRM
+                          ├── Churn
+                          └── Campanhas
+                          📦 OPERAÇÕES
+                          ├── Picking
+                          └── Pedidos
+                          ⚙️ SISTEMA
+                          ├── Usuários
+                          └── Perfil
+```
+
+---
+
+> **Próximo passo:** Iniciar Sprint 13 — CRM Enriquecido + Clusterização de Clientes.

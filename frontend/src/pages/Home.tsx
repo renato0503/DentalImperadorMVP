@@ -11,7 +11,7 @@ export function HomePage() {
           <a className="btn btn-light" href="/chatbot">
             Conversar com o assistente
           </a>
-          <a className="btn btn-outline-light" href="/dashboard">
+          <a className="btn btn-outline" href="/dashboard">
             Ver o Dashboard
           </a>
         </div>

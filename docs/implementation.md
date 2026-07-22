@@ -1,6 +1,10 @@
 ## Implementation Roadmap – Dental Imperador
 
-**Objetivo:** Entregar a plataforma em 3 fases (MVP, expansão e consolidação) com sprints de duas semanas cada, envolvendo times de **Desenvolvimento**, **UX/UI**, **QA** e **Ops**.
+**Objetivo:** Entregar a plataforma em 2 fases com sprints de duas semanas cada, envolvendo times de **Desenvolvimento**, **UX/UI**, **QA** e **Ops**.
+
+**Fase 1 — MVP Base (Sprints 0–12):** ✅ Concluída. Todas as funcionalidades essenciais entregues: chatbot, orçamento, pedidos, CRM, dashboard, churn, picking, relatórios, super admin, API B2B, PWA, mobile.
+
+**Fase 2 — Workflow Orientation & CRM Avançado (Sprints 13–20):** 🔄 Em andamento. Reorganização da plataforma por personas (cliente, admin, manager, operator) com CRM enriquecido, perfil 360°, notificações, salvaguarda, onboarding e automação de vendas.
 
 ### Status Geral dos Sprints
 
@@ -294,6 +298,107 @@
 
 ---
 
+## Fase 2 — Workflow Orientation & CRM Avançado (Sprints 13–20)
+
+Após a conclusão das 12 sprints do MVP, a plataforma agora entra na **Fase 2: Organização por Workflows**. O objetivo é reestruturar toda a experiência do usuário com base em **4 personas** (Cliente, Admin, Manager, Operator), cada uma com jornadas, permissões e interfaces dedicadas.
+
+### Sprint 13 — CRM Enriquecido + Clusterização de Clientes (2 semanas)
+
+| Área | Tarefas | Resultado |
+|---|---|---|
+| **Backend** | • Ampliar schema `customers` com campos: `ticket_cluster`, `frequencia_cluster`, `categorias_compra`, `vendedor_uid`, `ultimo_contato`, `proximo_contato`, `nota_interna`, `propensao_compra`, `endereco`<br>• Endpoint `GET /crm/clusters` — distribuição por ticket, frequência e segmento<br>• Endpoint `GET /crm/sales-alerts` — alertas de follow-up para vendedores<br>• Endpoint `GET /crm/timeline/:id` — timeline de interações do cliente | API de CRM enriquecida com dados de cluster e alertas |
+| **Frontend** | • Kanban com +1 coluna: Leads → Contato → Proposta → Negociação → Cliente → Inativo<br>• Badge de cluster no card: ticket (💰/💎), frequência (🔄/📅/💤)<br>• Modal de lead com formulário completo + atribuição a vendedor<br>• Filtros: por cluster, vendedor, período, score | Kanban inteligente com clusterização |
+| **QA** | • Testar regras de cluster (ticket < 5k = pequeno, etc.)<br>• Validar criação de lead com campos novos | Clusterização funcionando |
+
+**Critério de aceitação:** Vendedor vê leads clusterizados por ticket e frequência, consegue atribuir a si mesmo e adicionar notas internas.
+
+---
+
+### Sprint 14 — Perfil 360° do Cliente + Timeline (2 semanas)
+
+| Área | Tarefas | Resultado |
+|---|---|---|
+| **Backend** | • Endpoint `GET /crm/customers/:id/timeline` — eventos: chat, orçamento, pedido, ligação, email<br>• Endpoint `GET /crm/customers/:id/orders` — pedidos do cliente<br>• Endpoint `GET /crm/customers/:id/estimates` — orçamentos do cliente | API de histórico completo do cliente |
+| **Frontend** | • Página `/crm/cliente/:id` — Perfil 360°<br>  — Header: nome, cluster, score, vendedor responsável<br>  — Abas: Timeline, Pedidos, Orçamentos, Notas<br>  — Timeline visual com ícones por tipo de evento<br>  — Formulário de nota interna<br>  — Botão "Atribuir vendedor"<br>  — Indicador de propensão de compra (0-100) | Perfil completo com histórico |
+| **UX/UI** | • Timeline com scroll infinito<br>• Cards expansíveis para cada evento<br>• Cores por tipo (chat=azul, pedido=verde, lead=amarelo) | Experiência de navegação fluida |
+
+**Critério de aceitação:** Vendedor acessa qualquer cliente e vê em segundos todo o histórico de interações, pedidos e notas.
+
+---
+
+### Sprint 15 — Sidebar por Papel + Meu Painel + Perfil (2 semanas)
+
+| Área | Tarefas | Resultado |
+|---|---|---|
+| **Frontend** | • **Sidebar** reescrita com seções agrupadas e badges de notificação<br>  — Cliente: Meu Painel, Chatbot, Orçamento, Meus Pedidos, Perfil<br>  — Admin/Manager: Dashboards, Gestão, Operações, Sistema<br>  — Operator: Picking, CRM, Dashboard<br>• **MobileNav** e **DrawerMenu** atualizados com mesma lógica<br>• Página `/meu-painel` — Dashboard do cliente com pedidos recentes, orçamentos salvos, chat ativo<br>• Página `/perfil` — Dados cadastrais, preferências (tema, notificações), alterar senha<br>• **Redirect pós-login** por papel (Admin→/admin, Manager→/dashboard, Operator→/picking, Cliente→/meu-painel) | Navegação organizada por papel |
+| **UX/UI** | • Sidebar com divisores visuais entre seções<br>• Ícones consistentes por categoria<br>• Animação de transição ao trocar de rota | UI profissional e intuitiva |
+| **QA** | • Testar redirect para cada papel<br>• Verificar que cliente não vê links de admin<br>• Testar mobile nav | Navegação testada por papel |
+
+**Critério de aceitação:** Cada papel vê apenas seus links, é redirecionado para a página correta ao logar e tem acesso ao perfil.
+
+---
+
+### Sprint 16 — Sistema de Notificações + Salvaguarda (Sales Alerts) (2 semanas)
+
+| Área | Tarefas | Resultado |
+|---|---|---|
+| **Backend** | • Endpoint `GET /notifications` — lista alertas do usuário logado<br>• Endpoint `PATCH /notifications/:id/read` — marcar como lida<br>• Job agendado que dispara alertas com base nas regras de salvaguarda:<br>  — Lead não atribuído > 24h → notifica admin<br>  — Lead sem contato > 3 dias → notifica vendedor<br>  — Proposta sem retorno > 5 dias → notifica vendedor<br>  — Cliente inativo > 30 dias → notifica vendedor<br>  — Churn risco alto → notifica admin<br>  — Pedido parado na separação > 2 dias → notifica operador | Motor de regras de alerta |
+| **Frontend** | • Componente `NotificationBell` no Header — ícone 🔔 com badge de contagem<br>• Dropdown de notificações com lista, ícone por severidade e "Ver todas"<br>• Badge na sidebar por seção (ex: "Gestão (🔴3)")<br>• Toast/notificação in-app ao receber novo alerta | Notificações visíveis em toda plataforma |
+| **Ops** | • Configurar polling ou WebSocket para notificações em tempo real<br>• Definir limites de rate para evitar spam de notificações | Notificações em tempo real |
+
+**Critério de aceitação:** Vendedor recebe alerta visual quando um lead precisa de atenção. Admin vê leads não atribuídos. Operador vê picks parados.
+
+---
+
+### Sprint 17 — Landing Adaptativa + Onboarding + Autoatendimento (2 semanas)
+
+| Área | Tarefas | Resultado |
+|---|---|---|
+| **Frontend** | • **Landing page adaptativa por role:**<br>  — Visitante: hero atual com CTA para chatbot<br>  — Cliente logado: "Bem-vindo de volta! Seus últimos pedidos..."<br>  — Admin logado: "Bom dia! X alertas pendentes"<br>  — Manager: "Meta do mês: Y% batida"<br>  — Operator: "X separações pendentes hoje"<br>• **Onboarding tour** (primeiro login):<br>  — Modal "Bem-vindo à plataforma"<br>  — Tour guiado destacando sidebar, notificações e página principal<br>  — Dica contextual na primeira ação<br>• **Autoatendimento** para clientes:<br>  — "Esqueci minha senha" (via Firebase)<br>  — FAQ interativo no chatbot<br>  — Agendamento de call com vendedor | Experiência personalizada desde o primeiro acesso |
+| **UX/UI** | • Hero adaptável por papel com background dinâmico<br>• Tour com tooltips estilizados e "Pular"<br>• Estados vazios com ilustrações e CTAs | Onboarding amigável |
+| **QA** | • Testar landing para cada papel logado/não logado<br>• Testar tour completo no primeiro login | Fluxo de onboarding validado |
+
+**Critério de aceitação:** Usuário é saudado com conteúdo relevante ao logar. Novo usuário é guiado pela plataforma. Cliente consegue resetar senha sozinho.
+
+---
+
+### Sprint 18 — Métricas de Vendas + Reports por Vendedor (2 semanas)
+
+| Área | Tarefas | Resultado |
+|---|---|---|
+| **Backend** | • Endpoint `GET /crm/metrics/salesperson` — por vendedor: leads, conversão, ticket médio, tempo médio por etapa<br>• Endpoint `GET /crm/metrics/pipeline` — taxa de conversão por etapa, gargalos<br>• Endpoint `GET /crm/metrics/forecast` — projeção de receita com base no pipeline atual | Métricas analíticas de vendas |
+| **Frontend** | • Aba "Métricas" no CRM com:<br>  — Ranking de vendedores (conversão, ticket, leads)<br>  — Funil de vendas (quantos leads em cada etapa)<br>  — Tempo médio por etapa (detecção de gargalo)<br>  — Projeção de receita do mês<br>• Gráfico de funil (Funnel Chart)<br>• Tabela comparativa entre vendedores | CRM analítico com visão de performance |
+| **UX/UI** | • Cards de métricas por vendedor com badge de performance<br>• Tooltips explicativos em cada métrica<br>• Botão "Comparar períodos" | Dashboard de vendas completo |
+
+**Critério de aceitação:** Gestor identifica em 30 segundos qual vendedor tem melhor conversão e onde está o gargalo no pipeline.
+
+---
+
+### Sprint 19 — Integração Chatbot → CRM + Automação de Lead (2 semanas)
+
+| Área | Tarefas | Resultado |
+|---|---|---|
+| **Backend** | • Ao final da triagem do chatbot, criar lead automaticamente no CRM<br>• Endpoint `POST /crm/auto-create-lead` — recebe dados da triagem, cria lead e atribui vendedor (round-robin ou least-loaded)<br>• Webhook para quando lead é criado via WhatsApp (mock)<br>• Job diário: leads sem interação > 7 dias → mover para "inativo" | Automação de criação de leads |
+| **Frontend** | • Chatbot → após triagem → "Um vendedor entrará em contato em até 24h"<br>• Lead aparece automaticamente no Kanban do vendedor<br>• Notificação push interna quando novo lead é atribuído | Lead do chatbot → CRM automaticamente |
+| **AI** | • Prompt Groq ajustado para qualificar leads (perguntar CNPJ, segmento, necessidade)<br>• Se lead qualificado → prioridade alta na atribuição | Chatbot como funil de vendas |
+| **QA** | • Testar fluxo completo: chatbot → triagem → lead no Kanban<br>• Testar atribuição round-robin com 3 vendedores mock | Pipeline chatbot→CRM testado |
+
+**Critério de aceitação:** Lead criado pelo chatbot aparece no Kanban do vendedor automaticamente em segundos.
+
+---
+
+### Sprint 20 — Integração WhatsApp + Canal de Vendas Unificado (2 semanas)
+
+| Área | Tarefas | Resultado |
+|---|---|---|
+| **Backend** | • Webhook mock para receber mensagens do WhatsApp<br>• Endpoint `POST /crm/whatsapp/incoming` — recebe msg, cria lead ou associa a cliente existente<br>• Job que sincroniza conversas do WhatsApp com timeline do CRM | Base para integração real com WhatsApp API |
+| **Frontend** | • Aba "WhatsApp" no perfil do cliente — histórico de conversas<br>• Indicador "Contato via WhatsApp" no card do lead<br>• Botão "Abrir WhatsApp" com link direto para o número do cliente | Visibilidade do canal WhatsApp |
+| **UX/UI** | • Bolha de chat do WhatsApp estilizada<br>• Badge "WhatsApp" nos cards do Kanban | Canais unificados no CRM |
+
+**Critério de aceitação:** Mensagem do WhatsApp é registrada na timeline do cliente e vendedor consegue ver todo o histórico.
+
+---
+
 ### Resumo das Sprints
 
 | Sprint | Duração | Foco Principal | Status |
@@ -311,8 +416,16 @@
 | 10 | 2 sem | API B2B externa (OpenAPI, Gateway, Rate limiting) | ✅ |
 | 11 | 2 sem | Mobile-first refinamentos e auditoria Lighthouse | ✅ |
 | 12 | 2 sem | Release final, documentação, suporte e rollout canário | ✅ |
+| 13 | 2 sem | CRM enriquecido + clusterização de clientes (ticket, frequência, segmento) | 🔄 |
+| 14 | 2 sem | Perfil 360° do cliente + timeline de interações | ⏳ |
+| 15 | 2 sem | Sidebar por papel + Meu Painel + Perfil + redirect pós-login | ⏳ |
+| 16 | 2 sem | Sistema de notificações + salvaguarda (sales alerts + regras de follow-up) | ⏳ |
+| 17 | 2 sem | Landing adaptativa + onboarding tour + autoatendimento | ⏳ |
+| 18 | 2 sem | Métricas de vendas + reports por vendedor (funil, conversão, previsão) | ⏳ |
+| 19 | 2 sem | Integração Chatbot → CRM + automação de lead (round-robin) | ⏳ |
+| 20 | 2 sem | Integração WhatsApp + canal de vendas unificado | ⏳ |
 
-> **Próximos passos:** Revisar este roadmap com as partes interessadas, validar a disponibilidade dos endpoints do ERP (Lucas) e iniciar a Sprint 0.
+> **Próximos passos:** Iniciar Sprint 13 — CRM Enriquecido + Clusterização.
 
 ---
 
