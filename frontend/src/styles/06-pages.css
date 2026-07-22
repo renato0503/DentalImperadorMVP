@@ -213,3 +213,50 @@
   .admin-charts { grid-template-columns: 1fr; }
   .sla-grid { grid-template-columns: 1fr; }
 }
+
+.kanban-card-clusters { display: flex; gap: 4px; flex-wrap: wrap; margin: 4px 0; }
+.kanban-cluster { font-size: 9px; font-weight: 700; padding: 2px 8px; border-radius: 99px; }
+.kanban-cluster.ticket { background: #D1FAE5; color: #065F46; }
+.kanban-cluster.freq { background: #DBEAFE; color: #1E40AF; }
+.kanban-card-vendedor { font-size: 11px; color: var(--cinza-medio); }
+.assign-select { font-size: 11px; padding: 2px 6px; border: 1px solid var(--borda); border-radius: 4px; }
+.kanban-card-score { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
+.score-bar { flex: 1; height: 4px; background: var(--cinza-claro); border-radius: 99px; overflow: hidden; }
+.score-fill { height: 100%; background: var(--green-imperador); border-radius: 99px; transition: width 0.5s; }
+.score-value { font-size: 10px; font-weight: 700; color: var(--cinza-medio); min-width: 28px; text-align: right; }
+
+.profile-header { display: flex; flex-direction: column; gap: 16px; }
+.profile-header-main { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+.profile-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.profile-cluster { font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 99px; }
+.profile-cluster.ticket { background: #D1FAE5; color: #065F46; }
+.profile-cluster.freq { background: #DBEAFE; color: #1E40AF; }
+.profile-status { font-size: 11px; font-weight: 600; padding: 3px 12px; border-radius: 99px; }
+.profile-score-ring { display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0; }
+.score-ring { position: relative; width: 72px; height: 72px; display: flex; align-items: center; justify-content: center; }
+.score-ring-value { position: absolute; font-size: 16px; font-weight: 800; color: var(--carbono); }
+.score-ring-label { font-size: 11px; color: var(--cinza-medio); }
+.profile-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 24px; font-size: 14px; }
+.profile-note { background: #FFFBEB; border: 1px solid #FDE68A; }
+.profile-tabs { display: flex; gap: 4px; margin: 16px 0; border-bottom: 2px solid var(--borda); }
+.profile-tab { padding: 10px 20px; border: none; background: none; font-size: 14px; font-weight: 500; color: var(--cinza-medio); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; }
+.profile-tab.active { color: var(--green-imperador); border-bottom-color: var(--green-imperador); }
+
+.timeline-feed { display: flex; flex-direction: column; gap: 12px; }
+.timeline-item { display: flex; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--borda); }
+.timeline-item:last-child { border-bottom: none; }
+.timeline-icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+.timeline-chat { background: #DBEAFE; }
+.timeline-pedido { background: #D1FAE5; }
+.timeline-orcamento { background: #E0E7FF; }
+.timeline-nota { background: #FEF3C7; }
+.timeline-ligacao { background: #FCE7F3; }
+.timeline-email { background: #E0E7FF; }
+.timeline-lead { background: #F3F4F6; }
+.timeline-body { flex: 1; }
+.timeline-body p { font-size: 14px; margin: 0; }
+.timeline-meta { font-size: 12px; color: var(--cinza-medio); }
+
+.note-form { display: flex; flex-direction: column; gap: 8px; }
+.note-form textarea { padding: 10px 14px; border: 1px solid var(--borda); border-radius: 6px; font-size: 14px; resize: vertical; }
+.note-form textarea:focus { border-color: var(--green-imperador); outline: none; }

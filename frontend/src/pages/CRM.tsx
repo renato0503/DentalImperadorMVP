@@ -1,23 +1,13 @@
 import { useState, useEffect, useCallback } from "react";
-import {
-  DragDropContext,
-  Droppable,
-  Draggable,
-  type DropResult,
-} from "@hello-pangea/dnd";
+import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd";
 
 interface Customer {
-  id: string;
-  nome: string;
-  cpf_cnpj: string;
-  email: string;
-  telefone: string;
-  segmento: string;
-  limite_credito: number;
-  total_gasto: number;
-  ultima_compra: string;
-  status: string;
-  origem: string;
+  id: string; nome: string; email: string; telefone: string;
+  segmento: string; status: string; origem: string;
+  total_gasto: number; ultima_compra: string;
+  ticket_cluster: string; frequencia_cluster: string; categorias_compra: string[];
+  vendedor_uid: string | null; vendedor_nome: string | null;
+  ultimo_contato: string | null; propensao_compra: number; churn_risk: string;
 }
 
 const COLUMNS = [
@@ -26,108 +16,165 @@ const COLUMNS = [
   { id: "proposta", title: "Proposta" },
   { id: "negociacao", title: "Negociação" },
   { id: "cliente", title: "Clientes" },
+  { id: "inativo", title: "Inativos" },
+];
+
+const TICKET_LABELS: Record<string, string> = { pequeno: "💰 Pequeno", medio: "💎 Médio", grande: "🏆 Grande" };
+const FREQ_LABELS: Record<string, string> = { recorrente: "🔄 Recorrente", sazonal: "📅 Sazonal", inativo: "💤 Inativo" };
+const VENDEDORES = [
+  { uid: "usr-001", nome: "Carlos Vendas" },
+  { uid: "usr-002", nome: "Ana Operadora" },
 ];
 
 export function CRMPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [columns, setColumns] = useState<Record<string, Customer[]>>(() => {
-    const map: Record<string, Customer[]> = {};
-    for (const col of COLUMNS) map[col.id] = [];
-    return map;
+    const m: Record<string, Customer[]> = {};
+    COLUMNS.forEach((c) => (m[c.id] = []));
+    return m;
   });
   const [loading, setLoading] = useState(true);
-  const [filterSegmento, setFilterSegmento] = useState("");
-  const [filterOrigem, setFilterOrigem] = useState("");
+  const [filterVendedor, setFilterVendedor] = useState("");
+  const [filterCluster, setFilterCluster] = useState("");
+  const [showCreate, setShowCreate] = useState(false);
+  const [form, setForm] = useState({ nome: "", email: "", telefone: "", segmento: "Consultório", origem: "Manual" });
 
   const fetchCustomers = useCallback(async () => {
     try {
       const params = new URLSearchParams();
-      if (filterSegmento) params.set("segmento", filterSegmento);
-      if (filterOrigem) params.set("origem", filterOrigem);
-      const url = `/api/v1/customers?${params.toString()}`;
-      const res = await fetch(url);
-      const data: Customer[] = await res.json();
+      if (filterVendedor) params.set("vendedor_uid", filterVendedor);
+      const res = await fetch(`/api/v1/customers?${params}`);
+      const data = await res.json();
       setCustomers(Array.isArray(data) ? data : []);
-    } catch {
-      console.error("Erro ao carregar clientes");
-    } finally {
       setLoading(false);
-    }
-  }, [filterSegmento, filterOrigem]);
+    } catch { setLoading(false); }
+  }, [filterVendedor]);
 
-  useEffect(() => {
-    fetchCustomers();
-  }, [fetchCustomers]);
+  useEffect(() => { fetchCustomers(); }, [fetchCustomers]);
 
   useEffect(() => {
     const map: Record<string, Customer[]> = {};
-    for (const col of COLUMNS) map[col.id] = [];
-    for (const c of customers) {
+    COLUMNS.forEach((c) => (map[c.id] = []));
+    let filtered = [...customers];
+    if (filterCluster) {
+      filtered = filtered.filter(
+        (c) => c.ticket_cluster === filterCluster || c.frequencia_cluster === filterCluster
+      );
+    }
+    for (const c of filtered) {
       const col = map[c.status] ? c.status : "lead";
       map[col].push(c);
     }
     setColumns(map);
-  }, [customers]);
+  }, [customers, filterCluster]);
 
   const handleDragEnd = async (result: DropResult) => {
     if (!result.destination) return;
-
-    const sourceCol = result.source.droppableId;
-    const destCol = result.destination.droppableId;
-
-    if (sourceCol === destCol) return;
-
-    const sourceItems = [...columns[sourceCol]];
-    const destItems = [...columns[destCol]];
-    const [moved] = sourceItems.splice(result.source.index, 1);
-    moved.status = destCol;
-    destItems.splice(result.destination.index, 0, moved);
-
-    setColumns({ ...columns, [sourceCol]: sourceItems, [destCol]: destItems });
-
+    const s = result.source.droppableId;
+    const d = result.destination.droppableId;
+    if (s === d) return;
+    const src = [...columns[s]];
+    const dst = [...columns[d]];
+    const [moved] = src.splice(result.source.index, 1);
+    moved.status = d;
+    dst.splice(result.destination.index, 0, moved);
+    setColumns({ ...columns, [s]: src, [d]: dst });
     try {
       await fetch(`/api/v1/customers/${moved.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: destCol }),
+        body: JSON.stringify({ status: d }),
       });
-    } catch {
-      fetchCustomers();
-    }
+    } catch { fetchCustomers(); }
   };
 
-  const getTotalGasto = (col: Customer[]) =>
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await fetch("/api/v1/customers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...form, criado_em: new Date().toISOString() }),
+      });
+      setShowCreate(false);
+      setForm({ nome: "", email: "", telefone: "", segmento: "Consultório", origem: "Manual" });
+      fetchCustomers();
+    } catch (e) { console.error(e); }
+  };
+
+  const handleAssign = async (customerId: string, vendedorUid: string) => {
+    const v = VENDEDORES.find((v) => v.uid === vendedorUid);
+    try {
+      await fetch(`/api/v1/crm/customers/${customerId}/assign`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ vendedor_uid: vendedorUid, vendedor_nome: v?.nome || "" }),
+      });
+      fetchCustomers();
+    } catch (e) { console.error(e); }
+  };
+
+  const totalCard = (col: Customer[]) =>
     col.reduce((s, c) => s + c.total_gasto, 0);
 
   if (loading) return <p>Carregando CRM...</p>;
 
   return (
     <div className="page page-crm">
-      <div className="crm-header">
-        <h1>CRM / Pipeline de Leads</h1>
-        <div className="crm-filters">
-          <select
-            value={filterSegmento}
-            onChange={(e) => setFilterSegmento(e.target.value)}
-          >
-            <option value="">Todos segmentos</option>
-            <option value="Consultório">Consultório</option>
-            <option value="Clínica">Clínica</option>
-            <option value="Distribuidor">Distribuidor</option>
-            <option value="Instituição">Instituição</option>
-          </select>
-          <select
-            value={filterOrigem}
-            onChange={(e) => setFilterOrigem(e.target.value)}
-          >
-            <option value="">Todas origens</option>
-            <option value="Site">Site</option>
-            <option value="WhatsApp">WhatsApp</option>
-            <option value="Indicação">Indicação</option>
-            <option value="Licitação">Licitação</option>
-          </select>
+      <div className="page-header-row">
+        <div>
+          <h1>CRM / Pipeline de Vendas</h1>
+          <p className="page-subtitle">Gestão de leads e clientes com clusterização inteligente.</p>
         </div>
+        <button className="btn btn-primary" onClick={() => setShowCreate(true)}>Novo Lead</button>
       </div>
+
+      <div className="crm-filters" style={{ marginBottom: 16, display: "flex", gap: 8, flexWrap: "wrap" }}>
+        <select value={filterVendedor} onChange={(e) => setFilterVendedor(e.target.value)}>
+          <option value="">Todos vendedores</option>
+          {VENDEDORES.map((v) => <option key={v.uid} value={v.uid}>{v.nome}</option>)}
+        </select>
+        <select value={filterCluster} onChange={(e) => setFilterCluster(e.target.value)}>
+          <option value="">Todos clusters</option>
+          <optgroup label="Ticket">
+            <option value="pequeno">💰 Pequeno</option>
+            <option value="medio">💎 Médio</option>
+            <option value="grande">🏆 Grande</option>
+          </optgroup>
+          <optgroup label="Frequência">
+            <option value="recorrente">🔄 Recorrente</option>
+            <option value="sazonal">📅 Sazonal</option>
+            <option value="inativo">💤 Inativo</option>
+          </optgroup>
+        </select>
+      </div>
+
+      {showCreate && (
+        <div className="modal-overlay" onClick={() => setShowCreate(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <h2>Novo Lead</h2>
+            <form onSubmit={handleCreate} className="campaign-form">
+              <label>Nome <input value={form.nome} onChange={(e) => setForm({...form, nome: e.target.value})} required /></label>
+              <label>Email <input type="email" value={form.email} onChange={(e) => setForm({...form, email: e.target.value})} /></label>
+              <label>Telefone <input value={form.telefone} onChange={(e) => setForm({...form, telefone: e.target.value})} /></label>
+              <label>Segmento
+                <select value={form.segmento} onChange={(e) => setForm({...form, segmento: e.target.value})}>
+                  <option>Consultório</option><option>Clínica</option><option>Distribuidor</option><option>Instituição</option><option>Estudante</option>
+                </select>
+              </label>
+              <label>Origem
+                <select value={form.origem} onChange={(e) => setForm({...form, origem: e.target.value})}>
+                  <option>Manual</option><option>Site</option><option>WhatsApp</option><option>Indicação</option><option>Chatbot</option>
+                </select>
+              </label>
+              <div className="modal-actions">
+                <button className="btn btn-primary" type="submit">Criar</button>
+                <button className="btn btn-outline" type="button" onClick={() => setShowCreate(false)}>Cancelar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       <DragDropContext onDragEnd={handleDragEnd}>
         <div className="kanban-board">
@@ -138,45 +185,49 @@ export function CRMPage() {
                 <span className="kanban-count">{columns[col.id].length}</span>
               </div>
               <div className="kanban-column-stats">
-                <span>R$ {getTotalGasto(columns[col.id]).toLocaleString("pt-BR", { minimumFractionDigits: 0 })}</span>
+                R$ {totalCard(columns[col.id]).toLocaleString("pt-BR", { minimumFractionDigits: 0 })}
               </div>
               <Droppable droppableId={col.id}>
                 {(provided, snapshot) => (
-                  <div
-                    ref={provided.innerRef}
-                    {...provided.droppableProps}
-                    className={`kanban-list${snapshot.isDraggingOver ? " dragging-over" : ""}`}
-                  >
-                    {columns[col.id].map((customer, index) => (
-                      <Draggable
-                        key={customer.id}
-                        draggableId={customer.id}
-                        index={index}
-                      >
+                  <div ref={provided.innerRef} {...provided.droppableProps}
+                    className={`kanban-list${snapshot.isDraggingOver ? " dragging-over" : ""}`}>
+                    {columns[col.id].map((c, i) => (
+                      <Draggable key={c.id} draggableId={c.id} index={i}>
                         {(provided, snapshot) => (
-                          <div
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            {...provided.dragHandleProps}
+                          <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}
                             className={`kanban-card${snapshot.isDragging ? " dragging" : ""}`}
-                          >
-                            <div className="kanban-card-name">{customer.nome}</div>
+                            onClick={() => window.location.href = `/crm/cliente/${c.id}`}>
+                            <div className="kanban-card-name">{c.nome}</div>
                             <div className="kanban-card-meta">
-                              <span className="kanban-card-segmento">
-                                {customer.segmento}
-                              </span>
-                              <span className="kanban-card-origem">
-                                {customer.origem}
-                              </span>
+                              <span className="kanban-card-segmento">{c.segmento}</span>
+                              <span className="kanban-card-origem">{c.origem}</span>
                             </div>
+                            {c.ticket_cluster && (
+                              <div className="kanban-card-clusters">
+                                <span className="kanban-cluster ticket">{TICKET_LABELS[c.ticket_cluster] || c.ticket_cluster}</span>
+                                <span className="kanban-cluster freq">{FREQ_LABELS[c.frequencia_cluster] || c.frequencia_cluster}</span>
+                              </div>
+                            )}
                             <div className="kanban-card-footer">
-                              <span>R$ {customer.total_gasto.toLocaleString("pt-BR", { minimumFractionDigits: 0 })}</span>
-                              <span className="kanban-card-data">
-                                {customer.ultima_compra
-                                  ? new Date(customer.ultima_compra).toLocaleDateString("pt-BR")
-                                  : ""}
-                              </span>
+                              <span>R$ {c.total_gasto.toLocaleString("pt-BR", { minimumFractionDigits: 0 })}</span>
+                              {!c.vendedor_uid ? (
+                                <select className="assign-select" value="" onChange={(e) => { e.stopPropagation(); handleAssign(c.id, e.target.value); }}
+                                  onClick={(e) => e.stopPropagation()}>
+                                  <option value="">Atribuir</option>
+                                  {VENDEDORES.map((v) => <option key={v.uid} value={v.uid}>{v.nome}</option>)}
+                                </select>
+                              ) : (
+                                <span className="kanban-card-vendedor" title={c.vendedor_nome || ""}>👤 {c.vendedor_nome}</span>
+                              )}
                             </div>
+                            {c.propensao_compra > 0 && (
+                              <div className="kanban-card-score" title="Propensão de compra">
+                                <div className="score-bar">
+                                  <div className="score-fill" style={{ width: `${c.propensao_compra}%` }} />
+                                </div>
+                                <span className="score-value">{c.propensao_compra}%</span>
+                              </div>
+                            )}
                           </div>
                         )}
                       </Draggable>
