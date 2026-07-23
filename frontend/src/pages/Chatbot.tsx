@@ -19,7 +19,6 @@ export function ChatbotPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-api-key": "demo-key-2026",
         },
         body: JSON.stringify({
           nome: data.nome,
