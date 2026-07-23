@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd";
+import { showToast } from "../lib/toast";
 
 interface Customer {
   id: string; nome: string; email: string; telefone: string;
@@ -99,7 +100,7 @@ export function CRMPage() {
       setShowCreate(false);
       setForm({ nome: "", email: "", telefone: "", segmento: "Consultório", origem: "Manual" });
       fetchCustomers();
-    } catch (e) { console.error(e); }
+    } catch (e) { showToast("Erro ao criar cliente"); }
   };
 
   const handleAssign = async (customerId: string, vendedorUid: string) => {
@@ -111,7 +112,7 @@ export function CRMPage() {
         body: JSON.stringify({ vendedor_uid: vendedorUid, vendedor_nome: v?.nome || "" }),
       });
       fetchCustomers();
-    } catch (e) { console.error(e); }
+    } catch (e) { showToast("Erro ao atribuir vendedor"); }
   };
 
   const totalCard = (col: Customer[]) =>

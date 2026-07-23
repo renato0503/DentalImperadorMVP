@@ -1,8 +1,10 @@
 import { NestFactory } from "@nestjs/core";
+import { ValidationPipe, Logger } from "@nestjs/common";
 import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
 import { AppModule } from "./app.module";
 
 async function bootstrap() {
+  const logger = new Logger("Bootstrap");
   const app = await NestFactory.create(AppModule);
 
   app.enableCors({
@@ -10,6 +12,7 @@ async function bootstrap() {
       "http://localhost:5173",
       "https://dentalimperador.web.app",
       "https://dentalimperador-d2529.firebaseapp.com",
+      "https://dentalimperador-backend-330816807481.us-central1.run.app",
     ],
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
   });
@@ -30,11 +33,19 @@ async function bootstrap() {
     customCss: ".swagger-ui .topbar { display: none }",
   });
 
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    })
+  );
+
   app.setGlobalPrefix("api/v1");
 
   const port = process.env.PORT ?? 3001;
   await app.listen(port);
-  console.log(`Backend rodando em http://localhost:${port}`);
-  console.log(`API Docs em http://localhost:${port}/api/docs`);
+  logger.log(`Backend rodando em http://localhost:${port}`);
+  logger.log(`API Docs em http://localhost:${port}/api/docs`);
 }
 bootstrap();

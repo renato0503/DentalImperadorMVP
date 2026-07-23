@@ -1,4 +1,5 @@
-import { Injectable, Logger, NotFoundException } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
+import { PrismaService } from "../prisma/prisma.service";
 
 export interface ClusterDistribution {
   tipo: string;
@@ -13,16 +14,17 @@ export interface SalesAlert {
   cliente_nome: string;
   tipo: string;
   mensagem: string;
-  prioridade: "alta" | "media" | "baixa";
+  prioridade: string;
   criado_em: string;
   lido: boolean;
 }
 
 export interface TimelineEvent {
   id: string;
-  tipo: "chat" | "pedido" | "orcamento" | "nota" | "ligacao" | "email" | "lead";
+  cliente_uid: string;
+  tipo: string;
   descricao: string;
-  data: string;
+  data: Date;
   responsavel: string;
 }
 
@@ -51,132 +53,425 @@ export interface CustomerDetail {
   criado_em: string;
 }
 
-const CUSTOMERS: CustomerDetail[] = [
-  { id: "1", nome: "Clínica OdontoPlus Ltda", cpf_cnpj: "12.345.678/0001-90", email: "contato@odontoplus.com.br", telefone: "(65) 3621-1000", segmento: "Clínica", status: "proposta", origem: "Site", total_gasto: 18340, ultima_compra: "2026-07-15", ticket_cluster: "medio", frequencia_cluster: "recorrente", categorias_compra: ["Restauradores", "Anestésicos"], vendedor_uid: "usr-001", vendedor_nome: "Carlos Vendas", ultimo_contato: "2026-07-20", proximo_contato: "2026-07-25", nota_interna: "Cliente interessado em novos equipamentos. Agendar visita.", propensao_compra: 78, churn_risk: "baixo", endereco: { logradouro: "Av. Historiador Rubens de Mendonça", numero: "3000", bairro: "Centro", cidade: "Cuiabá", estado: "MT", cep: "78000-000" }, criado_em: "2026-01-15T08:00:00" },
-  { id: "2", nome: "Dr. Matheus Victor", cpf_cnpj: "123.456.789-00", email: "matheusvictorfernandesromeu4@gmail.com", telefone: "(65) 99999-0001", segmento: "Consultório", status: "cliente", origem: "WhatsApp", total_gasto: 8900, ultima_compra: "2026-07-18", ticket_cluster: "medio", frequencia_cluster: "recorrente", categorias_compra: ["Restauradores", "Adesivos"], vendedor_uid: "usr-001", vendedor_nome: "Carlos Vendas", ultimo_contato: "2026-07-19", proximo_contato: null, nota_interna: "Cliente fiel. Preferência por resinas Z350.", propensao_compra: 85, churn_risk: "baixo", endereco: { logradouro: "Rua Comandante Costa", numero: "500", bairro: "Centro", cidade: "Cuiabá", estado: "MT", cep: "78010-000" }, criado_em: "2026-02-20T10:30:00" },
-  { id: "3", nome: "Sorriso Perfeito Odontologia", cpf_cnpj: "98.765.432/0001-10", email: "adm@sorisoperfeito.com.br", telefone: "(65) 3622-2000", segmento: "Clínica", status: "cliente", origem: "Indicação", total_gasto: 42000, ultima_compra: "2026-07-10", ticket_cluster: "grande", frequencia_cluster: "recorrente", categorias_compra: ["Instrumentais", "Equipamentos", "Anestésicos"], vendedor_uid: "usr-002", vendedor_nome: "Ana Operadora", ultimo_contato: "2026-07-12", proximo_contato: "2026-08-01", nota_interna: "Cliente premium. Acompanhar manutenção de equipamentos.", propensao_compra: 92, churn_risk: "baixo", endereco: { logradouro: "Rua Barão de Melgaço", numero: "1500", bairro: "Centro", cidade: "Cuiabá", estado: "MT", cep: "78020-000" }, criado_em: "2025-11-01T14:00:00" },
-  { id: "4", nome: "Dra. Ana Beatriz", cpf_cnpj: "987.654.321-00", email: "ana.beatriz@email.com", telefone: "(65) 99999-0002", segmento: "Consultório", status: "lead", origem: "Site", total_gasto: 3200, ultima_compra: "2026-06-20", ticket_cluster: "pequeno", frequencia_cluster: "sazonal", categorias_compra: ["Moldagem"], vendedor_uid: null, vendedor_nome: null, ultimo_contato: null, proximo_contato: null, nota_interna: null, propensao_compra: 45, churn_risk: "medio", endereco: { logradouro: "Av. República do Líbano", numero: "1200", bairro: "Alvorada", cidade: "Cuiabá", estado: "MT", cep: "78030-000" }, criado_em: "2026-04-10T09:15:00" },
-  { id: "5", nome: "Faculdade de Odontologia UFMT", cpf_cnpj: "00.000.000/0001-91", email: "lab.odonto@ufmt.br", telefone: "(65) 3615-8000", segmento: "Instituição", status: "cliente", origem: "Licitação", total_gasto: 78500, ultima_compra: "2026-07-05", ticket_cluster: "grande", frequencia_cluster: "sazonal", categorias_compra: ["Equipamentos", "Instrumentais", "Biossegurança"], vendedor_uid: "usr-001", vendedor_nome: "Carlos Vendas", ultimo_contato: "2026-07-06", proximo_contato: "2026-08-15", nota_interna: "Licitação anual. Preparar proposta para 2027.", propensao_compra: 95, churn_risk: "baixo", endereco: { logradouro: "Av. Fernando Corrêa", numero: "2367", bairro: "Boa Esperança", cidade: "Cuiabá", estado: "MT", cep: "78060-000" }, criado_em: "2025-06-01T07:00:00" },
-  { id: "6", nome: "Dr. Carlos Eduardo", cpf_cnpj: "456.789.123-00", email: "carlos.edu@email.com", telefone: "(65) 99999-0003", segmento: "Consultório", status: "lead", origem: "Indicação", total_gasto: 1200, ultima_compra: "2026-05-10", ticket_cluster: "pequeno", frequencia_cluster: "inativo", categorias_compra: ["Anestésicos"], vendedor_uid: null, vendedor_nome: null, ultimo_contato: null, proximo_contato: null, nota_interna: null, propensao_compra: 20, churn_risk: "alto", endereco: { logradouro: "Rua 13 de Junho", numero: "800", bairro: "Centro Norte", cidade: "Cuiabá", estado: "MT", cep: "78040-000" }, criado_em: "2026-05-01T11:00:00" },
-  { id: "7", nome: "Dental Mais Distribuidora", cpf_cnpj: "11.222.333/0001-44", email: "compras@dentalmais.com.br", telefone: "(65) 3623-3000", segmento: "Distribuidor", status: "cliente", origem: "WhatsApp", total_gasto: 112000, ultima_compra: "2026-07-20", ticket_cluster: "grande", frequencia_cluster: "recorrente", categorias_compra: ["Todas as linhas"], vendedor_uid: "usr-002", vendedor_nome: "Ana Operadora", ultimo_contato: "2026-07-21", proximo_contato: "2026-07-28", nota_interna: "Parceiro estratégico. Negociar condições especiais.", propensao_compra: 98, churn_risk: "baixo", endereco: { logradouro: "Av. Dom Bosco", numero: "500", bairro: "Verdão", cidade: "Cuiabá", estado: "MT", cep: "78050-000" }, criado_em: "2025-03-15T16:00:00" },
-  { id: "8", nome: "Dr. Renato Rosa", cpf_cnpj: "789.123.456-00", email: "gestor.renatorosa@gmail.com", telefone: "(65) 99999-0004", segmento: "Consultório", status: "negociacao", origem: "Site", total_gasto: 6700, ultima_compra: "2026-07-12", ticket_cluster: "medio", frequencia_cluster: "recorrente", categorias_compra: ["Restauradores", "Moldagem"], vendedor_uid: "usr-001", vendedor_nome: "Carlos Vendas", ultimo_contato: "2026-07-14", proximo_contato: "2026-07-24", nota_interna: "Negociando contrato anual. Potencial de upselling.", propensao_compra: 82, churn_risk: "baixo", endereco: { logradouro: "Rua Presidente Marques", numero: "200", bairro: "Centro", cidade: "Cuiabá", estado: "MT", cep: "78000-000" }, criado_em: "2026-01-05T13:45:00" },
-];
+function toCustomerDetail(user: any) {
+  let enderecoObj = {
+    logradouro: "",
+    numero: "",
+    bairro: "",
+    cidade: "",
+    estado: "",
+    cep: "",
+  };
+  if (user.endereco) {
+    try {
+      enderecoObj = JSON.parse(user.endereco);
+    } catch {}
+  }
 
-const TIMELINE: TimelineEvent[] = [
-  { id: "t1", tipo: "chat", descricao: "Cliente solicitou orçamento de resina composta", data: "2026-07-20T10:00:00", responsavel: "Chatbot" },
-  { id: "t2", tipo: "orcamento", descricao: "Orçamento #ORC-001 enviado: 10x Resina Z350", data: "2026-07-20T10:05:00", responsavel: "Sistema" },
-  { id: "t3", tipo: "ligacao", descricao: "Ligação de follow-up realizada. Cliente interessado.", data: "2026-07-20T14:00:00", responsavel: "Carlos Vendas" },
-  { id: "t4", tipo: "nota", descricao: "Cliente prefere contato por WhatsApp. Adicionar ao grupo.", data: "2026-07-20T14:05:00", responsavel: "Carlos Vendas" },
-  { id: "t5", tipo: "pedido", descricao: "Pedido #10482 criado — 10x Resina Composta", data: "2026-07-21T08:00:00", responsavel: "Sistema" },
-  { id: "t6", tipo: "email", descricao: "Nota fiscal #NF-5678 enviada por email", data: "2026-07-21T09:00:00", responsavel: "Sistema" },
-];
+  return {
+    id: user.id,
+    nome: user.nome,
+    cpf_cnpj: user.cpf_cnpj || "",
+    email: user.email,
+    telefone: user.telefone || "",
+    segmento: user.segmento || "",
+    status: user.status || user.papel,
+    origem: user.origem || "",
+    total_gasto: user.total_gasto || 0,
+    ultima_compra: user.ultima_compra
+      ? user.ultima_compra.toISOString().split("T")[0]
+      : "",
+    ticket_cluster: user.ticket_cluster || "",
+    frequencia_cluster: user.frequencia_cluster || "",
+    categorias_compra: [],
+    vendedor_uid: user.vendedor_uid || null,
+    vendedor_nome: user.vendedor_nome || null,
+    ultimo_contato: user.ultimo_contato
+      ? user.ultimo_contato.toISOString().split("T")[0]
+      : null,
+    proximo_contato: user.proximo_contato
+      ? user.proximo_contato.toISOString().split("T")[0]
+      : null,
+    nota_interna: user.nota_interna || null,
+    propensao_compra: user.propensao_compra || 0,
+    churn_risk: user.churn_risk || "baixo",
+    endereco: enderecoObj,
+    criado_em: user.criado_em
+      ? user.criado_em.toISOString()
+      : new Date().toISOString(),
+  };
+}
 
 @Injectable()
 export class CrmService {
   private readonly logger = new Logger(CrmService.name);
 
-  async getClusters(): Promise<{ ticket: ClusterDistribution[]; frequencia: ClusterDistribution[]; segmento: ClusterDistribution[] }> {
-    const ticket = this.aggregate(CUSTOMERS, "ticket_cluster");
-    const frequencia = this.aggregate(CUSTOMERS, "frequencia_cluster");
-    const segmento = this.aggregate(CUSTOMERS, "segmento");
-    return { ticket, frequencia, segmento };
+  constructor(private prisma: PrismaService) {}
+
+  async getClusters() {
+    const users = await this.prisma.user.findMany();
+
+    const aggregate = (field: string) => {
+      const map = new Map<string, { count: number; receita: number }>();
+      for (const u of users) {
+        const key = String((u as any)[field] || "desconhecido");
+        const curr = map.get(key) || { count: 0, receita: 0 };
+        curr.count++;
+        curr.receita += u.total_gasto || 0;
+        map.set(key, curr);
+      }
+      return Array.from(map.entries()).map(([k, v]) => ({
+        tipo: k,
+        rotulo: k.charAt(0).toUpperCase() + k.slice(1),
+        quantidade: v.count,
+        receita_total: v.receita,
+      }));
+    };
+
+    return {
+      ticket: aggregate("ticket_cluster"),
+      frequencia: aggregate("frequencia_cluster"),
+      segmento: aggregate("segmento"),
+    };
   }
 
-  async getSalesAlerts(): Promise<SalesAlert[]> {
-    const alerts: SalesAlert[] = [];
+  async getSalesAlerts() {
+    const customers = await this.prisma.user.findMany();
+    const alerts: any[] = [];
     let id = 0;
 
-    for (const c of CUSTOMERS) {
-      if (!c.vendedor_uid && c.status === "lead") {
-        alerts.push({ id: String(++id), cliente_id: c.id, cliente_nome: c.nome, tipo: "lead_nao_atribuido", mensagem: `Lead "${c.nome}" não atribuído há ${Math.floor((Date.now() - new Date(c.criado_em).getTime()) / 86400000)} dias`, prioridade: "alta", criado_em: new Date().toISOString(), lido: false });
-      }
-      if (c.propensao_compra > 70 && (!c.ultimo_contato || (Date.now() - new Date(c.ultimo_contato).getTime()) > 3 * 86400000)) {
-        alerts.push({ id: String(++id), cliente_id: c.id, cliente_nome: c.nome, tipo: "lead_sem_contato", mensagem: `Cliente "${c.nome}" sem contato há mais de 3 dias (propensão: ${c.propensao_compra}%)`, prioridade: "alta", criado_em: new Date().toISOString(), lido: false });
-      }
-      if (c.churn_risk === "alto") {
-        alerts.push({ id: String(++id), cliente_id: c.id, cliente_nome: c.nome, tipo: "churn_alto", mensagem: `"${c.nome}" está com risco alto de churn (última compra: ${c.ultima_compra})`, prioridade: "alta", criado_em: new Date().toISOString(), lido: false });
+    for (const c of customers) {
+      if (!c.vendedor_uid && c.papel !== "admin") {
+        alerts.push({
+          id: String(++id),
+          cliente_id: c.id,
+          cliente_nome: c.nome,
+          tipo: "lead_nao_atribuido",
+          mensagem: `Lead "${c.nome}" não atribuído`,
+          prioridade: "alta",
+          criado_em: new Date().toISOString(),
+          lido: false,
+        });
       }
     }
 
     return alerts;
   }
 
-  async getTimeline(customerId: string): Promise<TimelineEvent[]> {
-    return TIMELINE;
+  async getTimeline(customerId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: customerId },
+    });
+    if (!user) return [];
+
+    return this.prisma.timelineEvent.findMany({
+      where: { cliente_uid: user.uid },
+      orderBy: { data: "desc" },
+    });
   }
 
-  async getCustomerById(id: string): Promise<CustomerDetail | null> {
-    return CUSTOMERS.find((c) => c.id === id) || null;
+  async getCustomerById(id: string) {
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) return null;
+    return toCustomerDetail(user);
   }
 
-  async getCustomerOrders(customerId: string): Promise<any[]> {
-    return [
-      { id: "ORD-001", numero: "10482", data: "2026-07-21", status: "Separado", valor: 1544, itens: 2 },
-      { id: "ORD-002", numero: "10478", data: "2026-06-15", status: "Entregue", valor: 890, itens: 1 },
-    ];
+  async getCustomerOrders(customerId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: customerId },
+    });
+    if (!user) return [];
+
+    const orders = await this.prisma.order.findMany({
+      where: { cliente_uid: user.uid },
+      include: {
+        items: {
+          include: { product: { select: { nome: true } } },
+        },
+      },
+      orderBy: { criado_em: "desc" },
+    });
+
+    return orders.map((o) => ({
+      id: o.id,
+      numero: o.numero,
+      data: o.criado_em?.toISOString().split("T")[0] || "",
+      status: o.status,
+      valor: Number(o.valor_total || 0),
+      itens: o.items.length,
+    }));
   }
 
-  async getCustomerEstimates(customerId: string): Promise<any[]> {
-    return [
-      { id: "EST-001", numero: "ORC-001", data: "2026-07-20", status: "enviado", valor: 1544, itens: 2 },
-      { id: "EST-002", numero: "ORC-002", data: "2026-06-10", status: "aprovado", valor: 890, itens: 1 },
-    ];
+  async getCustomerEstimates(customerId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: customerId },
+    });
+    if (!user) return [];
+
+    const estimates = await this.prisma.estimate.findMany({
+      where: { cliente_uid: user.uid },
+      orderBy: { criado_em: "desc" },
+    });
+
+    return estimates.map((e) => ({
+      id: e.id,
+      data: e.criado_em?.toISOString().split("T")[0] || "",
+      status: e.status,
+      valor: Number(e.valor_total || 0),
+      itens: e.items ? JSON.parse(e.items).length : 0,
+    }));
   }
 
-  async addNote(customerId: string, texto: string, autor: string): Promise<TimelineEvent> {
-    const event: TimelineEvent = { id: `n${Date.now()}`, tipo: "nota", descricao: texto, data: new Date().toISOString(), responsavel: autor };
+  async addNote(customerId: string, texto: string, autor: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: customerId },
+    });
+    if (!user) throw new Error("Cliente não encontrado");
+
+    const event = await this.prisma.timelineEvent.create({
+      data: {
+        cliente_uid: user.uid,
+        tipo: "nota",
+        descricao: texto,
+        responsavel: autor,
+        data: new Date(),
+      },
+    });
+
+    await this.prisma.user.update({
+      where: { id: customerId },
+      data: { nota_interna: texto },
+    });
+
     return event;
   }
 
-  async assignVendor(customerId: string, vendedorUid: string, vendedorNome: string): Promise<CustomerDetail | null> {
-    const c = CUSTOMERS.find((c) => c.id === customerId);
-    if (!c) return null;
-    c.vendedor_uid = vendedorUid;
-    c.vendedor_nome = vendedorNome;
-    return c;
+  async assignVendor(
+    customerId: string,
+    vendedorUid: string,
+    vendedorNome: string
+  ) {
+    const user = await this.prisma.user.update({
+      where: { id: customerId },
+      data: {
+        vendedor_uid: vendedorUid,
+        vendedor_nome: vendedorNome,
+      },
+    });
+
+    await this.prisma.timelineEvent.create({
+      data: {
+        cliente_uid: user.uid,
+        tipo: "nota",
+        descricao: `Vendedor atribuído: ${vendedorNome}`,
+        responsavel: "Sistema",
+      },
+    });
+
+    return toCustomerDetail(user);
   }
 
-  async getSalespersonMetrics(): Promise<any[]> {
-    const vendors = new Map<string, { nome: string; leads: number; clientes: number; receita: number; ticket_medio: number; conversao: number }>();
-    for (const c of CUSTOMERS) {
+  async getSalespersonMetrics() {
+    const customers = await this.prisma.user.findMany();
+
+    const vendors = new Map<
+      string,
+      {
+        nome: string;
+        leads: number;
+        clientes: number;
+        receita: number;
+      }
+    >();
+
+    for (const c of customers) {
       if (!c.vendedor_uid) continue;
-      const v = vendors.get(c.vendedor_uid) || { nome: c.vendedor_nome || "—", leads: 0, clientes: 0, receita: 0, ticket_medio: 0, conversao: 0 };
+      const v = vendors.get(c.vendedor_uid) || {
+        nome: c.vendedor_nome || "—",
+        leads: 0,
+        clientes: 0,
+        receita: 0,
+      };
       v.leads++;
-      if (c.status === "cliente") v.clientes++;
-      v.receita += c.total_gasto;
+      if (c.papel === "cliente") v.clientes++;
+      v.receita += c.total_gasto || 0;
       vendors.set(c.vendedor_uid, v);
     }
+
     return Array.from(vendors.entries()).map(([uid, v]) => ({
-      vendedor_uid: uid, ...v,
+      vendedor_uid: uid,
+      ...v,
       ticket_medio: v.clientes > 0 ? Math.round(v.receita / v.clientes) : 0,
       conversao: v.leads > 0 ? Math.round((v.clientes / v.leads) * 100) : 0,
     }));
   }
 
-  async getPipelineMetrics(): Promise<{ etapa: string; quantidade: number; valor: number }[]> {
+  async getPipelineMetrics() {
     const etapas = ["lead", "contato", "proposta", "negociacao", "cliente"];
+    const users = await this.prisma.user.findMany();
+
     return etapas.map((etapa) => {
-      const customers = CUSTOMERS.filter((c) => c.status === etapa);
-      return { etapa, quantidade: customers.length, valor: customers.reduce((s, c) => s + c.total_gasto, 0) };
+      const filtered = users.filter(
+        (u) => (u as any).status === etapa || u.papel === etapa
+      );
+      return {
+        etapa,
+        quantidade: filtered.length,
+        valor: filtered.reduce((s, u) => s + (u.total_gasto || 0), 0),
+      };
     });
   }
 
-  async getForecast(): Promise<{ receita_projetada: number; probabilidade_media: number; leads_quentes: number }> {
-    const leadsQuentes = CUSTOMERS.filter((c) => c.propensao_compra > 70);
-    const receita = leadsQuentes.reduce((s, c) => s + (c.total_gasto || 5000), 0);
-    const probMedia = leadsQuentes.length > 0 ? Math.round(leadsQuentes.reduce((s, c) => s + c.propensao_compra, 0) / leadsQuentes.length) : 0;
-    return { receita_projetada: receita, probabilidade_media: probMedia, leads_quentes: leadsQuentes.length };
+  async getForecast() {
+    const customers = await this.prisma.user.findMany();
+    const leadsQuentes = customers.filter(
+      (c) => (c.propensao_compra || 0) > 70
+    );
+    const receita = leadsQuentes.reduce(
+      (s, c) => s + (c.total_gasto || 5000),
+      0
+    );
+    const probMedia =
+      leadsQuentes.length > 0
+        ? Math.round(
+            leadsQuentes.reduce((s, c) => s + (c.propensao_compra || 0), 0) /
+              leadsQuentes.length
+          )
+        : 0;
+
+    return {
+      receita_projetada: receita,
+      probabilidade_media: probMedia,
+      leads_quentes: leadsQuentes.length,
+    };
   }
 
-  private aggregate(data: CustomerDetail[], field: keyof CustomerDetail): ClusterDistribution[] {
-    const map = new Map<string, { count: number; receita: number }>();
-    for (const d of data) {
-      const key = String(d[field]);
-      const curr = map.get(key) || { count: 0, receita: 0 };
-      curr.count++;
-      curr.receita += d.total_gasto;
-      map.set(key, curr);
+  private vendorPool = [
+    { uid: "usr-001", nome: "Carlos Vendas" },
+    { uid: "usr-002", nome: "Ana Operadora" },
+  ];
+  private roundRobinIndex = 0;
+
+   async autoCreateLead(data: {
+    nome: string;
+    email: string;
+    telefone: string;
+    tipo_solicitacao: string;
+    origem?: string;
+    lista_academica?: boolean;
+  }) {
+    const vendor = this.vendorPool[this.roundRobinIndex];
+    this.roundRobinIndex =
+      (this.roundRobinIndex + 1) % this.vendorPool.length;
+
+    const acad = data.lista_academica ? "SIM" : "NÃO";
+    const user = await this.prisma.user.upsert({
+      where: { email: data.email },
+      update: {
+        nome: data.nome,
+        telefone: data.telefone,
+        origem: data.origem || "Chatbot",
+        vendedor_uid: vendor.uid,
+        vendedor_nome: vendor.nome,
+        ultimo_contato: new Date(),
+        nota_interna: `Lead atualizado via chatbot. Solicitação: ${data.tipo_solicitacao}. Lista acadêmica: ${acad}`,
+      },
+      create: {
+        uid: `lead-${Date.now()}`,
+        nome: data.nome,
+        email: data.email,
+        telefone: data.telefone,
+        papel: "cliente",
+        origem: data.origem || "Chatbot",
+        vendedor_uid: vendor.uid,
+        vendedor_nome: vendor.nome,
+        ultimo_contato: new Date(),
+        ticket_cluster: "pequeno",
+        frequencia_cluster: "inativo",
+        propensao_compra: 50,
+        churn_risk: "medio",
+        nota_interna: `Lead criado via chatbot. Solicitação: ${data.tipo_solicitacao}. Lista acadêmica: ${acad}`,
+      },
+    });
+
+    await this.prisma.timelineEvent.create({
+      data: {
+        cliente_uid: user.uid,
+        tipo: "lead",
+        descricao: `Lead criado via chatbot. Vendedor atribuído: ${vendor.nome}. Solicitação: ${data.tipo_solicitacao}`,
+        responsavel: "Chatbot",
+      },
+    });
+
+    this.logger.log(
+      `Lead criado: ${user.nome} → ${vendor.nome} (round-robin)`
+    );
+    return { lead: toCustomerDetail(user), vendedor_nome: vendor.nome };
+  }
+
+  async whatsappIncoming(data: {
+    numero: string;
+    mensagem: string;
+    nome?: string;
+  }) {
+    const existing = await this.prisma.user.findFirst({
+      where: { telefone: data.numero },
+    });
+
+    if (existing) {
+      await this.prisma.timelineEvent.create({
+        data: {
+          cliente_uid: existing.uid,
+          tipo: "chat",
+          descricao: `Mensagem WhatsApp recebida: "${data.mensagem.substring(
+            0,
+            100
+          )}"`,
+          responsavel: data.nome || "WhatsApp",
+        },
+      });
+      this.logger.log(
+        `WhatsApp: mensagem de cliente existente ${existing.nome}`
+      );
+      return { cliente: toCustomerDetail(existing), acao: "mensagem_associada" };
     }
-    return Array.from(map.entries()).map(([k, v]) => ({ tipo: k, rotulo: k.charAt(0).toUpperCase() + k.slice(1), quantidade: v.count, receita_total: v.receita }));
+
+    const vendor = this.vendorPool[this.roundRobinIndex];
+    this.roundRobinIndex =
+      (this.roundRobinIndex + 1) % this.vendorPool.length;
+
+    const user = await this.prisma.user.create({
+      data: {
+        uid: `whatsapp-${Date.now()}`,
+        nome: data.nome || `Contato WhatsApp ${data.numero}`,
+        email: "",
+        telefone: data.numero,
+        papel: "cliente",
+        origem: "WhatsApp",
+        vendedor_uid: vendor.uid,
+        vendedor_nome: vendor.nome,
+        ultimo_contato: new Date(),
+        ticket_cluster: "pequeno",
+        frequencia_cluster: "inativo",
+        propensao_compra: 50,
+        churn_risk: "medio",
+        nota_interna: `Lead criado via WhatsApp. Mensagem: "${data.mensagem.substring(
+          0,
+          200
+        )}"`,
+      },
+    });
+
+    await this.prisma.timelineEvent.create({
+      data: {
+        cliente_uid: user.uid,
+        tipo: "lead",
+        descricao: `Lead criado via WhatsApp Webhook. Vendedor: ${vendor.nome}`,
+        responsavel: "WhatsApp",
+      },
+    });
+
+    this.logger.log(`WhatsApp: novo lead criado ${user.nome} → ${vendor.nome}`);
+    return { cliente: toCustomerDetail(user), acao: "lead_criado" };
   }
 }

@@ -43,3 +43,6 @@ scripts/service-account*.json
 *.swp
 *.swo
 *~
+
+# SQLite database (dev only)
+*.db

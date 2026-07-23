@@ -21,7 +21,7 @@ export class ChurnController {
   }
 
   @Post("campaigns")
-  async createCampaign(@Body() data: Partial<Campaign>): Promise<Campaign> {
+  async createCampaign(@Body() data: any): Promise<Campaign> {
     return this.churnService.createCampaign(data);
   }
 

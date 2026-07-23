@@ -110,9 +110,9 @@ export function CustomerProfile() {
       )}
 
       <div className="profile-tabs">
-        {["timeline", "pedidos", "orcamentos", "notas"].map((t) => (
+        {["timeline", "pedidos", "orcamentos", "whatsapp", "notas"].map((t) => (
           <button key={t} className={`profile-tab${aba === t ? " active" : ""}`} onClick={() => setAba(t)}>
-            {t === "timeline" ? "📋 Timeline" : t === "pedidos" ? "📦 Pedidos" : t === "orcamentos" ? "📋 Orçamentos" : "📝 Notas"}
+            {t === "timeline" ? "📋 Timeline" : t === "pedidos" ? "📦 Pedidos" : t === "orcamentos" ? "📋 Orçamentos" : t === "whatsapp" ? "💬 WhatsApp" : "📝 Notas"}
           </button>
         ))}
       </div>
@@ -158,6 +158,50 @@ export function CustomerProfile() {
                 ))}</tbody>
               </table>
             )}
+          </div>
+        )}
+
+        {aba === "whatsapp" && (
+          <div>
+            <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 16 }}>
+              <a
+                href={`https://wa.me/55${customer.telefone.replace(/\D/g, "")}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-primary"
+              >
+                📱 Abrir WhatsApp
+              </a>
+              <span style={{ fontSize: 13, color: "var(--cinza-medio)" }}>
+                {customer.telefone}
+              </span>
+            </div>
+            <div className="whatsapp-conversas">
+              <div className="whatsapp-msg bot">
+                <div className="whatsapp-msg-bubble">
+                  <p>Olá! Tudo bem? Aqui é da Dental Imperador. Recebemos sua solicitação e estamos prontos para ajudar!</p>
+                  <span className="whatsapp-msg-time">21/07/2026 09:00</span>
+                </div>
+              </div>
+              <div className="whatsapp-msg cliente">
+                <div className="whatsapp-msg-bubble">
+                  <p>Olá! Gostaria de saber sobre os kits acadêmicos disponíveis.</p>
+                  <span className="whatsapp-msg-time">21/07/2026 09:05</span>
+                </div>
+              </div>
+              <div className="whatsapp-msg bot">
+                <div className="whatsapp-msg-bubble">
+                  <p>Temos Kits Acadêmicos completos a partir de R$ 299,90. Gostaria de receber o catálogo por email?</p>
+                  <span className="whatsapp-msg-time">21/07/2026 09:06</span>
+                </div>
+              </div>
+              <div className="whatsapp-msg cliente">
+                <div className="whatsapp-msg-bubble">
+                  <p>Sim, por favor! Meu email é {customer.email || "cliente@email.com"}</p>
+                  <span className="whatsapp-msg-time">21/07/2026 09:10</span>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 

@@ -42,11 +42,18 @@ export class FirebaseService implements OnModuleInit {
         });
         this.logger.log("Firebase Admin inicializado via GOOGLE_APPLICATION_CREDENTIALS");
       } else {
-        admin.initializeApp({ projectId: "dentalimperador-d2529" });
-        this.logger.warn(
-          "Firebase Admin: sem credenciais (modo emulador/sem autenticação). " +
-          "Coloque firebase-service-account.json no backend/ para produção."
-        );
+        try {
+          admin.initializeApp({
+            credential: admin.credential.applicationDefault(),
+            projectId: "dentalimperador-d2529",
+          });
+          this.logger.log("Firebase Admin inicializado via Application Default Credentials");
+        } catch {
+          admin.initializeApp({ projectId: "dentalimperador-d2529" });
+          this.logger.warn(
+            "Firebase Admin: sem credenciais (modo emulador)."
+          );
+        }
       }
 
       this._auth = admin.auth();

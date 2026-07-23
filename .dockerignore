@@ -1,0 +1,12 @@
+node_modules
+.git
+.DS_Store
+*.md
+.env
+.env.*
+firebase/
+frontend/
+assets/
+docs/
+scripts/
+docker-compose.yml

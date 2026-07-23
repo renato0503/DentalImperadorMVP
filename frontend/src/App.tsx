@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./lib/auth";
 import { AppShell } from "./components/layout/AppShell";
 import { InstallPrompt, OfflineNotice } from "./components/pwa/InstallPrompt";
+import { ToastContainer } from "./components/ToastContainer";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { HomePage } from "./pages/Home";
 import { LoginPage } from "./pages/Login";
@@ -32,6 +33,7 @@ export default function App() {
       <AuthProvider>
         <InstallPrompt />
         <OfflineNotice />
+        <ToastContainer />
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="*" element={

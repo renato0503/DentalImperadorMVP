@@ -1,4 +1,5 @@
 import { Injectable, Logger } from "@nestjs/common";
+import { PrismaService } from "../prisma/prisma.service";
 
 export interface SalesSummary {
   total_vendas: number;
@@ -27,73 +28,107 @@ export interface TopProduct {
   receita: number;
 }
 
-const MOCK_MONTHLY: SalesByPeriod[] = [
-  { periodo: "2026-01", vendas: 28500, pedidos: 32 },
-  { periodo: "2026-02", vendas: 31200, pedidos: 38 },
-  { periodo: "2026-03", vendas: 28900, pedidos: 35 },
-  { periodo: "2026-04", vendas: 35400, pedidos: 42 },
-  { periodo: "2026-05", vendas: 38800, pedidos: 45 },
-  { periodo: "2026-06", vendas: 42500, pedidos: 50 },
-  { periodo: "2026-07", vendas: 32000, pedidos: 47 },
-];
-
-const MOCK_CATEGORIES: SalesByCategory[] = [
-  { categoria: "Restauradores", vendas: 45200, quantidade: 320 },
-  { categoria: "Anestésicos", vendas: 28300, quantidade: 180 },
-  { categoria: "Moldagem", vendas: 12400, quantidade: 95 },
-  { categoria: "Adesivos", vendas: 19800, quantidade: 140 },
-  { categoria: "Instrumentais", vendas: 32100, quantidade: 210 },
-  { categoria: "Biossegurança", vendas: 15600, quantidade: 280 },
-];
-
-const MOCK_TOP_PRODUCTS: TopProduct[] = [
-  { sku: "RS001", produto: "Resina Composta Z350 XT - 4g", quantidade: 145, receita: 13035 },
-  { sku: "ANES01", produto: "Anestésico Lidocaína 2% - 1,8ml (cx 50)", quantidade: 98, receita: 18522 },
-  { sku: "ADP01", produto: "Adesivo Ambar Universal 5ml", quantidade: 87, receita: 11223 },
-  { sku: "ALG01", produto: "Alginato CAVEX - Pote 500g", quantidade: 72, receita: 3060 },
-  { sku: "INST01", produto: "Kit Instrumental Básico", quantidade: 45, receita: 15750 },
-  { sku: "BIO01", produto: "Luva Procedimento CX 100un", quantidade: 210, receita: 6300 },
-];
-
 @Injectable()
 export class ReportsService {
   private readonly logger = new Logger(ReportsService.name);
 
-  async getSummary(): Promise<SalesSummary> {
-    const total = MOCK_MONTHLY.reduce((s, m) => s + m.vendas, 0);
-    const pedidos = MOCK_MONTHLY.reduce((s, m) => s + m.pedidos, 0);
+  constructor(private prisma: PrismaService) {}
+
+  async getSummary() {
+    const orders = await this.prisma.order.findMany();
+    const totalVendas = orders.reduce((s, o) => s + Number(o.valor_total || 0), 0);
+    const totalPedidos = orders.length;
+    const clientes = await this.prisma.user.count();
+
     return {
-      total_vendas: total,
-      total_pedidos: pedidos,
-      ticket_medio: pedidos > 0 ? Math.round(total / pedidos) : 0,
-      total_clientes: 48,
-      media_por_cliente: 48 > 0 ? Math.round(total / 48) : 0,
+      total_vendas: totalVendas,
+      total_pedidos: totalPedidos,
+      ticket_medio: totalPedidos > 0 ? Math.round(totalVendas / totalPedidos) : 0,
+      total_clientes: clientes,
+      media_por_cliente: clientes > 0 ? Math.round(totalVendas / clientes) : 0,
     };
   }
 
-  async getSalesByPeriod(
-    inicio?: string,
-    fim?: string
-  ): Promise<SalesByPeriod[]> {
-    let data = [...MOCK_MONTHLY];
-    if (inicio) data = data.filter((d) => d.periodo >= inicio);
-    if (fim) data = data.filter((d) => d.periodo <= fim);
-    return data;
+  async getSalesByPeriod(inicio?: string, fim?: string) {
+    const orders = await this.prisma.order.findMany({
+      orderBy: { criado_em: "asc" },
+    });
+
+    const monthly = new Map<string, { vendas: number; pedidos: number }>();
+    for (const o of orders) {
+      const key = o.criado_em
+        ? `${o.criado_em.getFullYear()}-${String(o.criado_em.getMonth() + 1).padStart(2, "0")}`
+        : "desconhecido";
+      if (inicio && key < inicio) continue;
+      if (fim && key > fim) continue;
+
+      const curr = monthly.get(key) || { vendas: 0, pedidos: 0 };
+      curr.vendas += Number(o.valor_total || 0);
+      curr.pedidos++;
+      monthly.set(key, curr);
+    }
+
+    return Array.from(monthly.entries()).map(([periodo, v]) => ({
+      periodo,
+      vendas: v.vendas,
+      pedidos: v.pedidos,
+    }));
   }
 
-  async getSalesByCategory(): Promise<SalesByCategory[]> {
-    return MOCK_CATEGORIES;
+  async getSalesByCategory() {
+    const items = await this.prisma.orderItem.findMany({
+      include: {
+        product: { select: { categoria: true } },
+      },
+    });
+
+    const cats = new Map<string, { vendas: number; quantidade: number }>();
+    for (const item of items) {
+      const cat = item.product?.categoria || "Sem categoria";
+      const curr = cats.get(cat) || { vendas: 0, quantidade: 0 };
+      curr.vendas += Number(item.preco_unit) * item.quantidade;
+      curr.quantidade += item.quantidade;
+      cats.set(cat, curr);
+    }
+
+    return Array.from(cats.entries()).map(([categoria, v]) => ({
+      categoria,
+      vendas: v.vendas,
+      quantidade: v.quantidade,
+    }));
   }
 
-  async getTopProducts(limit = 10): Promise<TopProduct[]> {
-    return MOCK_TOP_PRODUCTS.slice(0, limit);
+  async getTopProducts(limit = 10) {
+    const items = await this.prisma.orderItem.findMany({
+      include: {
+        product: { select: { sku: true, nome: true } },
+      },
+    });
+
+    const prods = new Map<string, { sku: string; produto: string; quantidade: number; receita: number }>();
+    for (const item of items) {
+      const pid = item.product_id;
+      const curr = prods.get(pid) || {
+        sku: item.product?.sku || "",
+        produto: item.product?.nome || "",
+        quantidade: 0,
+        receita: 0,
+      };
+      curr.quantidade += item.quantidade;
+      curr.receita += Number(item.preco_unit) * item.quantidade;
+      prods.set(pid, curr);
+    }
+
+    return Array.from(prods.values())
+      .sort((a, b) => b.receita - a.receita)
+      .slice(0, limit);
   }
 
   async exportCSV(
     tipo: "vendas" | "categorias" | "produtos",
     inicio?: string,
     fim?: string
-  ): Promise<string> {
+  ) {
     switch (tipo) {
       case "vendas": {
         const data = await this.getSalesByPeriod(inicio, fim);
@@ -110,9 +145,7 @@ export class ReportsService {
       case "produtos": {
         const data = await this.getTopProducts();
         const lines = ["SKU;Produto;Quantidade;Receita (R$)"];
-        data.forEach((d) =>
-          lines.push(`${d.sku};${d.produto};${d.quantidade};${d.receita}`)
-        );
+        data.forEach((d) => lines.push(`${d.sku};${d.produto};${d.quantidade};${d.receita}`));
         return lines.join("\n");
       }
     }
