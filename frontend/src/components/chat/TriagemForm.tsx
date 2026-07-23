@@ -5,6 +5,7 @@ export interface TriagemData {
   email: string;
   telefone: string;
   tipo_solicitacao: string;
+  lista_academica: boolean;
 }
 
 interface Props {
@@ -26,6 +27,7 @@ export function TriagemForm({ onComplete }: Props) {
     email: "",
     telefone: "",
     tipo_solicitacao: "",
+    lista_academica: false,
   });
 
   const update = (field: keyof TriagemData, value: string) => {
@@ -34,7 +36,7 @@ export function TriagemForm({ onComplete }: Props) {
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    if (step < 3) {
+    if (step < 4) {
       setStep(step + 1);
     } else {
       onComplete(data);
@@ -45,7 +47,7 @@ export function TriagemForm({ onComplete }: Props) {
     <div className="triagem-form">
       <div className="triagem-header">
         <div className="triagem-steps">
-          {[1, 2, 3, 4].map((s) => (
+          {[1, 2, 3, 4, 5].map((s) => (
             <div
               key={s}
               className={`triagem-step-indicator${s <= step + 1 ? " active" : ""}`}
@@ -123,6 +125,22 @@ export function TriagemForm({ onComplete }: Props) {
           </div>
         )}
 
+        {step === 4 && (
+          <div className="triagem-field">
+            <label>Você é estudante de Odontologia ou possui lista acadêmica (Unic, Univag, CTEN)?</label>
+            <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
+              <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
+                <input type="radio" name="lista_academica" checked={data.lista_academica === true} onChange={() => setData({ ...data, lista_academica: true })} />
+                Sim
+              </label>
+              <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
+                <input type="radio" name="lista_academica" checked={data.lista_academica === false} onChange={() => setData({ ...data, lista_academica: false })} />
+                Não
+              </label>
+            </div>
+          </div>
+        )}
+
         <div className="triagem-actions">
           {step > 0 && (
             <button
@@ -134,7 +152,7 @@ export function TriagemForm({ onComplete }: Props) {
             </button>
           )}
           <button type="submit" className="btn btn-primary">
-            {step < 3 ? "Próximo" : "Iniciar Conversa"}
+            {step < 4 ? "Próximo" : "Iniciar Conversa"}
           </button>
         </div>
       </form>

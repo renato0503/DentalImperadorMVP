@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
+import { PrismaService } from "../prisma/prisma.service";
 
 const STATUS_FLOW = [
   "Aguardando",
@@ -29,81 +30,81 @@ export interface Order {
   endereco_entrega: string;
 }
 
-const MOCK_ORDERS: Order[] = [
-  {
-    id: "1",
-    numero: "10482",
-    cliente: "Clinica OdontoPlus Ltda",
-    cliente_uid: "uUIBiyMZyxNRN7irqO3aRdXqGqi1",
-    status: "Separado",
-    status_index: 2,
-    items: [
-      { sku: "RS001", produto: "Resina Composta Z350 XT - 4g", quantidade: 10, preco_unit: 89.9 },
-      { sku: "ADP01", produto: "Adesivo Ambar Universal 5ml", quantidade: 5, preco_unit: 129.0 },
-    ],
-    valor_total: 1544.0,
-    criado_em: "2026-07-15T10:30:00",
-    atualizado_em: "2026-07-18T14:22:00",
-    endereco_entrega: "Av. Historiador Rubens de Mendonça, 3000 - Cuiabá-MT",
-  },
-  {
-    id: "2",
-    numero: "10483",
-    cliente: "Consultório Dr. Matheus",
-    cliente_uid: "NcTtOuP9o6gPXDzHvsCHlG42AIm1",
-    status: "Entregue",
-    status_index: 4,
-    items: [
-      { sku: "ALG01", produto: "Alginato CAVEX - Pote 500g", quantidade: 3, preco_unit: 42.5 },
-      { sku: "ANES01", produto: "Anestésico Lidocaína 2% - 1,8ml (cx 50)", quantidade: 2, preco_unit: 189.0 },
-    ],
-    valor_total: 505.5,
-    criado_em: "2026-07-10T08:15:00",
-    atualizado_em: "2026-07-17T16:45:00",
-    endereco_entrega: "Rua Comandante Costa, 500 - Cuiabá-MT",
-  },
-  {
-    id: "3",
-    numero: "10484",
-    cliente: "Clinica Sorriso Perfeito",
-    cliente_uid: "",
-    status: "Aguardando",
-    status_index: 0,
-    items: [
-      { sku: "RS001", produto: "Resina Composta Z350 XT - 4g", quantidade: 20, preco_unit: 89.9 },
-    ],
-    valor_total: 1798.0,
-    criado_em: "2026-07-20T09:00:00",
-    atualizado_em: "2026-07-20T09:00:00",
-    endereco_entrega: "Rua Barão de Melgaço, 1500 - Cuiabá-MT",
-  },
-];
+function toOrder(order: any): Order {
+  return {
+    id: order.id,
+    numero: order.numero,
+    cliente: order.cliente?.nome || "",
+    cliente_uid: order.cliente_uid,
+    status: order.status,
+    status_index: STATUS_FLOW.indexOf(order.status) || 0,
+    items: (order.items || []).map((item: any) => ({
+      sku: item.product?.sku || "",
+      produto: item.product?.nome || "",
+      quantidade: item.quantidade,
+      preco_unit: Number(item.preco_unit),
+    })),
+    valor_total: order.valor_total ? Number(order.valor_total) : 0,
+    criado_em: order.criado_em?.toISOString?.() || order.criado_em,
+    atualizado_em: order.atualizado_em?.toISOString?.() || order.atualizado_em || order.criado_em?.toISOString?.() || "",
+    endereco_entrega: order.endereco_entrega || "",
+  };
+}
 
 @Injectable()
 export class OrdersService {
-  private orders = [...MOCK_ORDERS];
+  constructor(private prisma: PrismaService) {}
 
   async findAll(cliente_uid?: string): Promise<Order[]> {
-    if (cliente_uid) {
-      return this.orders.filter((o) => o.cliente_uid === cliente_uid);
-    }
-    return this.orders;
+    const where: any = {};
+    if (cliente_uid) where.cliente_uid = cliente_uid;
+
+    const orders = await this.prisma.order.findMany({
+      where,
+      include: {
+        cliente: { select: { nome: true } },
+        items: {
+          include: { product: { select: { sku: true, nome: true } } },
+        },
+      },
+      orderBy: { criado_em: "desc" },
+    });
+
+    return orders.map(toOrder);
   }
 
   async findByNumero(numero: string): Promise<Order> {
-    const order = this.orders.find((o) => o.numero === numero);
+    const order = await this.prisma.order.findUnique({
+      where: { numero },
+      include: {
+        cliente: { select: { nome: true } },
+        items: {
+          include: { product: { select: { sku: true, nome: true } } },
+        },
+      },
+    });
+
     if (!order) {
       throw new NotFoundException(`Pedido #${numero} não encontrado`);
     }
-    return order;
+    return toOrder(order);
   }
 
   async findOne(id: string): Promise<Order> {
-    const order = this.orders.find((o) => o.id === id);
+    const order = await this.prisma.order.findUnique({
+      where: { id },
+      include: {
+        cliente: { select: { nome: true } },
+        items: {
+          include: { product: { select: { sku: true, nome: true } } },
+        },
+      },
+    });
+
     if (!order) {
       throw new NotFoundException(`Pedido ${id} não encontrado`);
     }
-    return order;
+    return toOrder(order);
   }
 
   getStatusFlow(): string[] {

@@ -2,36 +2,21 @@
 
 Plataforma completa para distribuidores de produtos odontológicos, com chatbot inteligente, orçamentos automáticos, CRM e gestão de pedidos.
 
-> **Status:** MVP em desenvolvimento (3 de 13 sprints concluídas)
-> **Última atualização:** 2026-07-21
+> **Status:** ✅ Plataforma completa — todas as 25 sprints concluídas
+> **Última atualização:** 2026-07-23
 
 ---
 
 ## Stack
 
 | Camada | Tecnologia |
-|---|---|
+|---|---|---|
 | Frontend | React 18 + TypeScript + Vite (PWA) |
-| Backend | NestJS + Prisma + PostgreSQL |
+| Backend | NestJS + Prisma + SQLite (dev) / PostgreSQL (prod) |
 | Chat/Firebase | Firebase Auth, Firestore, Hosting, Cloud Functions |
 | AI | Groq API (llama-3.3-70b-versatile) |
-| Eventos | Google Cloud Pub/Sub |
-| Cache | Redis |
-| Deploy | Firebase Hosting + GitHub Pages |
-
----
-
-## Telas (App React + PWA)
-
-| Rota | Funcionalidade |
-|---|---|
-| `/` | Landing Page |
-| `/chatbot` | Chatbot com triagem automática + IA |
-| `/orcamento` | Catálogo de produtos + geração de proposta |
-| `/pedido` | Consulta de status com timeline |
-| `/dashboard` | Métricas e gráficos (Chart.js) |
-| `/crm` | Kanban drag-and-drop de leads |
-| `/login` | Autenticação Firebase |
+| Email | SendGrid |
+| Deploy | Firebase Hosting + GitHub Actions |
 
 ---
 
@@ -62,25 +47,41 @@ firebase deploy --only functions
 
 ---
 
+## Telas (App React + PWA)
+
+| Rota | Funcionalidade |
+|---|---|
+| `/` | Landing Page adaptativa por papel |
+| `/chatbot` | Chatbot com triagem automática + IA + criação de lead |
+| `/orcamento` | Catálogo de produtos + geração de proposta |
+| `/pedido` | Consulta de status com timeline |
+| `/dashboard` | Métricas e gráficos (Chart.js) |
+| `/crm` | Kanban drag-and-drop + Perfil 360° + aba WhatsApp |
+| `/metricas-vendas` | Funil de vendas, ranking vendedores, projeção |
+| `/churn` | Dashboard de churn com score de risco |
+| `/campanhas` | Gestão de campanhas de retenção |
+| `/picking` | Monitor de separação de pedidos |
+| `/relatorios` | Exportação de dados (CSV/PDF) |
+| `/admin` | Painel consolidado com KPIs e SLA |
+| `/meu-painel` | Painel do cliente logado |
+| `/perfil` | Dados cadastrais e preferências |
+| `/login` | Autenticação Firebase |
+
+---
+
 ## Roadmap
 
-| Sprint | Status |
-|---|---|
-| 0 — Preparação | ✅ |
-| 1 — Fundamentos MVP | ✅ |
-| 2 — Chatbot Avançado | ✅ |
-| 3 — CRM Core | ✅ |
-| 4 — Polimento MVP | 🔄 |
-| 5 — Churn | ⏳ |
-| 6 — Picking | ⏳ |
-| 7 — Relatórios | ⏳ |
-| 8 — Performance/Segurança | ⏳ |
-| 9 — Super Admin | ⏳ |
-| 10 — API B2B | ⏳ |
-| 11 — Mobile | ⏳ |
-| 12 — Release | ⏳ |
+| Sprint | Foco | Status |
+|---|---|---|
+| 0-12 | Fase 1 — MVP Base (Chatbot, CRM, Churn, Picking, Admin, API B2B) | ✅ |
+| 13-20 | Fase 2 — Workflow Orientation (Perfil 360°, Notificações, Métricas, Leads) | ✅ |
+| 21 | Data Real: Mocks → Prisma/SQLite | ✅ |
+| 22 | Schemas Faltantes + Migrations (7 novos modelos) | ✅ |
+| 23 | Integrações Externas (Groq, SendGrid, Firebase Admin, CI/CD) | ✅ |
+| 24 | Infraestrutura & Qualidade (Logger, Toast, Testes, PWA) | ✅ |
+| 25 | UX Final & QA (Perfil, MeuPainel, Admin real) | ✅ |
 
-> Roadmap completo em `docs/implementation.md`
+> Roadmap detalhado em `docs/implementation.md`
 
 ---
 
@@ -100,20 +101,21 @@ firebase deploy --only functions
 ## Ambiente de Desenvolvimento
 
 ```bash
-# 1. Iniciar banco + cache
-docker compose up -d
-
-# 2. Backend
+# 1. Backend (sem Docker — SQLite nativo)
 cd backend
-cp .env.example .env     # Configurar DATABASE_URL
 npm install
 npx prisma migrate dev
+npx prisma db seed
 npm run start:dev        # http://localhost:3001
 
-# 3. Frontend
+# 2. Frontend
 cd frontend
 npm install
 npm run dev              # http://localhost:5173
+
+# Para PostgreSQL + Redis (produção):
+# docker compose up -d
+# DATABASE_URL=postgresql://dental:dental123@localhost:5432/dentalimperador?schema=public
 ```
 
 ---

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { showToast } from "../../lib/toast";
 import {
   collection,
   addDoc,
@@ -10,50 +11,63 @@ import {
   limit,
   getDocs,
 } from "firebase/firestore";
-import { getFunctions, httpsCallable } from "firebase/functions";
 import { db } from "../../lib/firebase";
+import { API_BASE } from "../../lib/api";
 import { useAuth } from "../../lib/auth";
 import { MessageList, type Message } from "./MessageList";
 import { InputBox } from "./InputBox";
+import type { TriagemData } from "./TriagemForm";
 
-export function ChatWidget() {
+interface Props {
+  leadData?: TriagemData;
+}
+
+function generateId(): string {
+  return crypto.randomUUID?.() || `anon-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+export function ChatWidget({ leadData }: Props) {
   const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [convId, setConvId] = useState<string | null>(null);
 
-  const findOrCreateConversation = useCallback(async () => {
-    if (!user) return;
+  const userId = user?.uid || leadData?.email || generateId();
+  const userName = user?.displayName || leadData?.nome || "Visitante";
 
+  const findOrCreateConversation = useCallback(async () => {
     const q = query(
       collection(db, "conversations"),
-      where("participantes", "array-contains", user.uid),
+      where("participantes", "array-contains", userId),
       orderBy("ultima_mensagem_em", "desc"),
       limit(1)
     );
 
     const snap = await getDocs(q);
     if (!snap.empty) {
-      const doc = snap.docs[0];
-      setConvId(doc.id);
-      return doc.ref;
+      const docSnap = snap.docs[0];
+      setConvId(docSnap.id);
+      return docSnap.ref;
     }
 
     const ref = await addDoc(collection(db, "conversations"), {
-      participantes: [user.uid],
+      participantes: [userId],
+      nome: userName,
+      email: leadData?.email || null,
+      telefone: leadData?.telefone || null,
+      tipo_solicitacao: leadData?.tipo_solicitacao || null,
+      logado: !!user,
       criado_em: serverTimestamp(),
       ultima_mensagem_em: serverTimestamp(),
     });
     setConvId(ref.id);
     return ref;
-  }, [user]);
+  }, [userId, userName, leadData, user]);
 
   useEffect(() => {
-    if (!user) return;
-
     findOrCreateConversation().then(() => setLoading(false));
-  }, [user, findOrCreateConversation]);
+  }, [findOrCreateConversation]);
 
   useEffect(() => {
     if (!convId) return;
@@ -76,28 +90,33 @@ export function ChatWidget() {
   }, [convId]);
 
   const handleSend = async (text: string) => {
-    if (!convId || !user) return;
+    if (!convId) return;
     setSending(true);
 
     try {
       await addDoc(
         collection(db, "conversations", convId, "messages"),
         {
-          remetente: user.uid,
+          remetente: userId,
+          nome: userName,
           texto: text,
           criado_em: serverTimestamp(),
         }
       );
 
-      const fn = getFunctions();
-      const callGroq = httpsCallable(fn, "callGroq");
-      const result = await callGroq({
-        mensagem: text,
-        contexto: "Assistente de vendas da Dental Imperador",
+      const result = await fetch(`${API_BASE}/api/v1/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mensagem: text,
+          contexto: `Assistente de vendas da Dental Imperador. Cliente: ${userName}`,
+        }),
       });
 
-      const data = result.data as { resposta: string };
-      if (data.resposta) {
+      if (!result.ok) throw new Error(`HTTP ${result.status}`);
+      const data = await result.json();
+      const resposta = data?.resposta;
+      if (resposta) {
         await addDoc(
           collection(db, "conversations", convId, "messages"),
           {
@@ -108,23 +127,21 @@ export function ChatWidget() {
         );
       }
     } catch (error) {
-      console.error("Erro ao enviar mensagem:", error);
+      showToast("Erro ao enviar mensagem. Tente novamente.");
     } finally {
       setSending(false);
     }
   };
 
-  if (!user) {
-    return (
-      <div className="chat-login-prompt">
-        <p>Faça login para usar o chat</p>
-      </div>
-    );
-  }
-
   return (
     <div className="chat-widget">
-      <MessageList messages={messages} loading={loading} />
+      <MessageList
+        messages={messages}
+        loading={loading}
+        sending={sending}
+        currentUserId={userId}
+        currentUserName={userName}
+      />
       <InputBox onSend={handleSend} disabled={sending} />
     </div>
   );

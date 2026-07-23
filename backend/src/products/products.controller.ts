@@ -1,14 +1,15 @@
 import { Controller, Get, Param, Query } from "@nestjs/common";
 import { ProductsService } from "./products.service";
+import { ProductQueryDto } from "./dto/product-query.dto";
 
 @Controller("products")
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
   @Get()
-  async findAll(@Query("categoria") categoria?: string) {
-    if (categoria) {
-      return this.productsService.findByCategory(categoria);
+  async findAll(@Query() query: ProductQueryDto) {
+    if (query.categoria) {
+      return this.productsService.findByCategory(query.categoria);
     }
     return this.productsService.findAll();
   }

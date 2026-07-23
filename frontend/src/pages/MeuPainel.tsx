@@ -1,19 +1,56 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../lib/auth";
+import {
+  Chart, BarController, BarElement, CategoryScale, LinearScale,
+  Tooltip, Legend,
+} from "chart.js";
+
+Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
 interface Order { numero: string; status: string; valor: number; data: string; }
 
 export function MeuPainel() {
   const { userData } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
+  const [metrics, setMetrics] = useState<any>(null);
+  const chartRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     if (!userData) return;
-    fetch(`/api/v1/orders?cliente_uid=${userData.uid}`)
-      .then((r) => r.json())
-      .then((o) => setOrders(Array.isArray(o) ? o : []))
+    Promise.all([
+      fetch(`/api/v1/orders?cliente_uid=${userData.uid}`).then((r) => r.json()),
+      fetch(`/api/v1/admin/metrics`).then((r) => r.json()),
+    ])
+      .then(([o, m]) => {
+        setOrders(Array.isArray(o) ? o : []);
+        setMetrics(m);
+      })
       .catch(() => {});
   }, [userData]);
+
+  useEffect(() => {
+    if (!chartRef.current || orders.length === 0) return;
+    const ctx = chartRef.current.getContext("2d");
+    if (!ctx) return;
+    const chart = new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: orders.map((o) => `#${o.numero}`),
+        datasets: [{
+          label: "Valor (R$)",
+          data: orders.map((o) => o.valor),
+          backgroundColor: "#00A650",
+          borderRadius: 4,
+        }],
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true } },
+      },
+    });
+    return () => chart.destroy();
+  }, [orders]);
 
   if (!userData) return <p className="empty-state">Faça login para ver seu painel.</p>;
 
@@ -57,6 +94,15 @@ export function MeuPainel() {
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
         <div className="card">
+          <h2 style={{ fontSize: 18, marginBottom: 16 }}>📊 Gastos por Pedido</h2>
+          {orders.length > 0 ? (
+            <canvas ref={chartRef} height="200" />
+          ) : (
+            <p className="empty-state">Nenhum pedido para exibir.</p>
+          )}
+        </div>
+
+        <div className="card">
           <h2 style={{ fontSize: 18, marginBottom: 16 }}>📦 Meus Pedidos</h2>
           {orders.length === 0 ? (
             <p className="empty-state">Nenhum pedido encontrado.</p>
@@ -76,14 +122,14 @@ export function MeuPainel() {
             </table>
           )}
         </div>
+      </div>
 
-        <div className="card">
-          <h2 style={{ fontSize: 18, marginBottom: 16 }}>📋 Ações Rápidas</h2>
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            <a className="btn btn-primary" href="/chatbot">💬 Conversar com Assistente</a>
-            <a className="btn btn-outline" href="/orcamento">📋 Fazer Orçamento</a>
-            <a className="btn btn-outline" href="/pedido">📦 Status de Pedido</a>
-          </div>
+      <div className="card" style={{ marginTop: 16 }}>
+        <h2 style={{ fontSize: 18, marginBottom: 16 }}>📋 Ações Rápidas</h2>
+        <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+          <a className="btn btn-primary" href="/chatbot">💬 Conversar com Assistente</a>
+          <a className="btn btn-outline" href="/orcamento">📋 Fazer Orçamento</a>
+          <a className="btn btn-outline" href="/pedido">📦 Status de Pedido</a>
         </div>
       </div>
     </div>

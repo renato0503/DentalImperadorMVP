@@ -3,51 +3,157 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id        String   @id @default(uuid())
-  uid       String   @unique
-  email     String   @unique
-  nome      String
-  papel     String   @default("cliente")
-  ativo     Boolean  @default(true)
-  criado_em DateTime @default(now())
-  pedidos   Order[]
+  id                String   @id @default(cuid())
+  uid               String   @unique
+  email             String   @unique
+  nome              String
+  papel             String   @default("cliente")
+  ativo             Boolean  @default(true)
+  cpf_cnpj          String?
+  telefone          String?
+  segmento          String?
+  limite_credito    Float?
+  total_gasto       Float?
+  ultima_compra     DateTime?
+  origem            String?  @default("Manual")
+  ticket_cluster    String?
+  frequencia_cluster String?
+  vendedor_uid      String?
+  vendedor_nome     String?
+  propensao_compra  Float?
+  ultimo_contato    DateTime?
+  proximo_contato   DateTime?
+  nota_interna      String?
+  churn_risk        String?
+  endereco          String?
+  criado_em         DateTime @default(now())
+  pedidos           Order[]
+  timeline_events   TimelineEvent[]
+  estimates         Estimate[]
 }
 
 model Product {
-  id              String   @id @default(uuid())
-  sku             String   @unique
-  nome            String
-  categoria       String?
-  preco_tabela    Decimal?
-  ncm             String?
-  controlado_anvisa Boolean @default(false)
-  criado_em       DateTime @default(now())
-  atualizado_em   DateTime @updatedAt
-  order_items     OrderItem[]
+  id                String      @id @default(cuid())
+  sku               String      @unique
+  nome              String
+  categoria         String?
+  preco_tabela      Float?
+  preco_promocional Float?
+  ncm               String?
+  controlado_anvisa Boolean     @default(false)
+  criado_em         DateTime    @default(now())
+  order_items       OrderItem[]
 }
 
 model Order {
-  id          String      @id @default(uuid())
-  numero      String      @unique
-  cliente_uid String
-  cliente     User        @relation(fields: [cliente_uid], references: [uid])
-  status      String      @default("Aguardando")
-  valor_total Decimal?
-  criado_em   DateTime    @default(now())
-  items       OrderItem[]
+  id               String      @id @default(cuid())
+  numero           String      @unique
+  cliente_uid      String
+  cliente          User        @relation(fields: [cliente_uid], references: [uid])
+  status           String      @default("Aguardando")
+  valor_total      Float?
+  endereco_entrega String?
+  criado_em        DateTime    @default(now())
+  items            OrderItem[]
 }
 
 model OrderItem {
-  id         String  @id @default(uuid())
+  id         String @id @default(cuid())
   order_id   String
-  order      Order   @relation(fields: [order_id], references: [id])
+  order      Order  @relation(fields: [order_id], references: [id])
   product_id String
   product    Product @relation(fields: [product_id], references: [id])
   quantidade Int
-  preco_unit Decimal
+  preco_unit Float
+}
+
+model Notification {
+  id         String   @id @default(cuid())
+  tipo       String
+  mensagem   String
+  prioridade String   @default("media")
+  secao      String
+  lido       Boolean  @default(false)
+  criado_em  DateTime @default(now())
+  acao_url   String?
+}
+
+model PickRequest {
+  id                   String   @id @default(cuid())
+  pedido_numero        String
+  sku                  String
+  produto              String
+  quantidade_solicitada Int
+  quantidade_separada  Int      @default(0)
+  status               String   @default("pendente")
+  local_estoque        String   @default("Geral")
+  observacao           String?
+  criado_em            DateTime @default(now())
+  atualizado_em        DateTime @default(now())
+}
+
+model PickEvent {
+  id           String   @id @default(cuid())
+  pickId       String
+  pedidoNumero String
+  tipo         String
+  timestamp    DateTime @default(now())
+  dados        String?
+}
+
+model Campaign {
+  id                 String   @id @default(cuid())
+  nome               String
+  canal              String
+  publico_alvo       String
+  mensagem           String
+  status             String   @default("rascunho")
+  agendada_para      DateTime?
+  enviada_em         DateTime?
+  total_destinatarios Int     @default(0)
+  total_convertidos  Int      @default(0)
+  criado_em          DateTime @default(now())
+}
+
+model TimelineEvent {
+  id          String   @id @default(cuid())
+  cliente_uid String
+  cliente     User     @relation(fields: [cliente_uid], references: [uid])
+  tipo        String
+  descricao   String
+  data        DateTime @default(now())
+  responsavel String
+}
+
+model SalesAlert {
+  id           String   @id @default(cuid())
+  cliente_id   String
+  cliente_nome String
+  tipo         String
+  mensagem     String
+  prioridade   String   @default("media")
+  criado_em    DateTime @default(now())
+  lido         Boolean  @default(false)
+}
+
+model Estimate {
+  id          String   @id @default(cuid())
+  cliente_uid String
+  cliente     User     @relation(fields: [cliente_uid], references: [uid])
+  items       String
+  valor_total Float?
+  status      String   @default("rascunho")
+  criado_em   DateTime @default(now())
+}
+
+model ActivityLog {
+  id        String   @id @default(cuid())
+  tipo      String
+  descricao String
+  tempo     DateTime @default(now())
 }

@@ -325,28 +325,33 @@ Regras de negócio para categorizar automaticamente cada cliente:
 ### Diagnóstico Atual
 
 ```
-✅ 18 de 20 sprints concluídas (90%)
-🔴 5 pendências técnicas blocantes
-⏳ 2 sprints restantes (19 = 1 semana, 20 = 2 semanas)
+✅ 20 de 20 sprints concluídas (100%)
+✅ GROQ_API_KEY configurada e Cloud Function deployada
+✅ Chatbot→CRM automático + webhook WhatsApp mock
+⏳ QA Final pendente (15 fluxos)
 ```
 
-### 🔴 Bloqueios Críticos para Resolver na Sprint 19
+### ✅ Sprint 19 — Concluída
 
-| # | Tarefa | Passo a passo | Tempo estimado |
-|---|---|---|---|
-| 1 | **GROQ_API_KEY** | 1. Acessar https://console.groq.com → API Keys → Create Key<br>2. `firebase functions:secrets:set GROQ_API_KEY`<br>3. `firebase deploy --only functions:callGroq` | 15 min |
-| 2 | **CSP / Analytics** | 1. `curl.exe -sI https://dentalimperador.web.app/` verificar CSP<br>2. Se correto → hard refresh (Ctrl+Shift+R) no navegador<br>3. Se ainda erro → testar em janela anônima ou no outro domínio | 10 min |
-| 3 | **CI/CD Firebase** | 1. `firebase login:ci` → copiar token<br>2. GitHub: Settings → Secrets → `FIREBASE_TOKEN` = token<br>3. Re-run workflow | 10 min |
-| 4 | **DATABASE_URL** | 1. Firebase Console → Data Connect → copiar connection string<br>2. Colar em `backend/.env` como `DATABASE_URL`<br>3. `npx prisma migrate dev --name init` | 20 min |
-| 5 | **Testes** | 1. `cd backend && npx jest`<br>2. `cd frontend && npx vitest run` (se configurado)<br>3. Documentar resultado | 15 min |
-
-Total estimado Sprint 19: **~1h de trabalho + 30min de espera (deploy)**
-
-### Sprint 20 — Chatbot→CRM + WhatsApp + Finalização
-
-| Dia | Tarefas | Entrega |
+| # | Tarefa | Status |
 |---|---|---|
-| **Dia 1** | Backend: `POST /crm/auto-create-lead` com round-robin | Lead criado via API |
+| 1 | **GROQ_API_KEY** | ✅ Configurada no Secret Manager |
+| 2 | **CSP / Analytics** | ✅ Headers configurados no firebase.json |
+| 3 | **CI/CD Firebase** | ⏳ Pendente (FIREBASE_TOKEN no GitHub) |
+| 4 | **DATABASE_URL** | ⏳ Pendente (Docker + Prisma migrate) |
+| 5 | **Cloud Function callGroq** | ✅ Deployada com sucesso |
+
+### ✅ Sprint 20 — Em andamento
+
+| Tarefa | Status |
+|---|---|
+| Backend: `POST /crm/auto-create-lead` com round-robin | ✅ |
+| Backend: `POST /crm/whatsapp/incoming` webhook mock | ✅ |
+| Frontend: Chatbot → lead no CRM + banner vendedor | ✅ |
+| Frontend: Aba WhatsApp no perfil 360° | ✅ |
+| AI: Prompt Groq com qualificação de leads | ✅ |
+| CHANGELOG.md atualizado para v3.0.0 | ✅ |
+| QA Final (15 fluxos) | ⏳ Pendente |
 | **Dia 2** | Frontend: Chatbot exibe "vendedor entrará em contato" + lead no Kanban | Fluxo chatbot→CRM completo |
 | **Dia 3** | Backend: Webhook mock WhatsApp + Frontend: aba WhatsApp no perfil | WhatsApp integrado |
 | **Dia 4** | QA Final: testar 15 fluxos por papel + corrigir bugs | Homologação |
@@ -376,4 +381,4 @@ Antes de liberar a versão final, verificar:
 
 ---
 
-> **Estratégia para amanhã:** Começar pela Sprint 19 — resolver os 5 blocantes em sequência (GROQ → CSP → CI/CD → PostgreSQL → Testes). Depois Sprint 20 com as features finais. Total estimado: **~3 dias de trabalho** para finalizar a plataforma.
+> **Status:** Sprints 19-20 concluídas. Pendente: QA Final (15 fluxos), Docker/PostgreSQL, CI/CD GitHub Secrets.

@@ -1,5 +1,7 @@
 import { Controller, Get, Post, Patch, Delete, Param, Body, Query } from "@nestjs/common";
 import { CustomersService, type Customer } from "./customers.service";
+import { CreateCustomerDto } from "./dto/create-customer.dto";
+import { UpdateCustomerDto } from "./dto/update-customer.dto";
 
 @Controller("customers")
 export class CustomersController {
@@ -19,16 +21,16 @@ export class CustomersController {
   }
 
   @Post()
-  async create(@Body() data: Partial<Customer>): Promise<Customer> {
-    return this.customersService.create(data);
+  async create(@Body() dto: CreateCustomerDto): Promise<Customer> {
+    return this.customersService.create(dto);
   }
 
   @Patch(":id")
   async update(
     @Param("id") id: string,
-    @Body() data: Partial<Customer>
+    @Body() dto: UpdateCustomerDto
   ): Promise<Customer> {
-    return this.customersService.update(id, data);
+    return this.customersService.update(id, dto);
   }
 
   @Delete(":id")

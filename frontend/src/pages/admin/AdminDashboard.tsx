@@ -4,6 +4,7 @@ import {
   Tooltip, Legend, ArcElement, DoughnutController, LineController,
   LineElement, PointElement, Filler,
 } from "chart.js";
+import { showToast } from "../../lib/toast";
 
 Chart.register(
   BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend,
@@ -56,7 +57,7 @@ export function AdminDashboard() {
       setUsers(Array.isArray(u) ? u : []);
       setActivities(Array.isArray(a) ? a : []);
     } catch (e) {
-      console.error(e);
+      showToast("Erro ao carregar dados do admin");
     } finally {
       setLoading(false);
     }

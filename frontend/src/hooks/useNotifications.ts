@@ -19,8 +19,8 @@ export function useNotifications(secao?: string) {
       ]);
       setNotifications(Array.isArray(notifRes) ? notifRes : []);
       setUnreadCount(countRes?.total || 0);
-    } catch (e) {
-      console.error(e);
+    } catch {
+      // notificações são secundárias — falha silenciosa
     } finally {
       setLoading(false);
     }

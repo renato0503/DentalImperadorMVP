@@ -1,4 +1,5 @@
 import { Injectable, Logger } from "@nestjs/common";
+import { PrismaService } from "../prisma/prisma.service";
 import { CacheService } from "../cache/cache.service";
 
 export interface AdminMetrics {
@@ -20,55 +21,76 @@ export interface AdminUser {
   email: string;
   nome: string;
   papel: string;
-  ultimo_acesso: string | null;
+  ultimo_acesso?: string | null;
   ativo: boolean;
 }
 
 export interface ActivityItem {
-  tipo: "pedido" | "lead" | "campanha";
+  tipo: string;
   descricao: string;
-  tempo: string;
+  tempo: Date;
 }
-
-const MOCK_USERS: AdminUser[] = [
-  { uid: "NcTtOuP9o6gPXDzHvsCHlG42AIm1", email: "matheusvictorfernandesromeu4@gmail.com", nome: "Matheus Victor", papel: "admin", ultimo_acesso: "2026-07-21T22:00:00", ativo: true },
-  { uid: "uUIBiyMZyxNRN7irqO3aRdXqGqi1", email: "gestor.renatorosa@gmail.com", nome: "Renato Rosa", papel: "admin", ultimo_acesso: "2026-07-21T23:00:00", ativo: true },
-  { uid: "usr-001", email: "vendas@dentalimperador.com.br", nome: "Carlos Vendas", papel: "manager", ultimo_acesso: "2026-07-20T14:00:00", ativo: true },
-  { uid: "usr-002", email: "operador@dentalimperador.com.br", nome: "Ana Operadora", papel: "operator", ultimo_acesso: "2026-07-21T16:00:00", ativo: true },
-];
-
-const MOCK_ACTIVITY: ActivityItem[] = [
-  { tipo: "pedido", descricao: "Pedido #10484 criado — Clínica Sorriso Perfeito", tempo: "2026-07-21T10:00:00" },
-  { tipo: "lead", descricao: "Novo lead: Dra. Ana Beatriz (Consultório)", tempo: "2026-07-21T09:30:00" },
-  { tipo: "campanha", descricao: "Campanha 'Reativação Inativos' disparada para 45 clientes", tempo: "2026-07-21T08:00:00" },
-  { tipo: "pedido", descricao: "Pedido #10483 entregue — Consultório Dr. Matheus", tempo: "2026-07-20T17:00:00" },
-  { tipo: "lead", descricao: "Lead convertido: Sorriso Perfeito Odontologia", tempo: "2026-07-20T15:00:00" },
-  { tipo: "campanha", descricao: "Campanha 'SMS Promocional' agendada para 01/08", tempo: "2026-07-20T14:00:00" },
-  { tipo: "pedido", descricao: "Separação concluída: Pedido #10482 (Resina Composta)", tempo: "2026-07-20T11:00:00" },
-];
 
 @Injectable()
 export class AdminService {
   private readonly logger = new Logger(AdminService.name);
-  private users = [...MOCK_USERS];
-  private activity = [...MOCK_ACTIVITY];
 
-  constructor(private cache: CacheService) {}
+  constructor(
+    private prisma: PrismaService,
+    private cache: CacheService
+  ) {}
 
-  async getMetrics(): Promise<AdminMetrics> {
-    const cached = await this.cache.get<AdminMetrics>("admin:metrics");
+  async getMetrics() {
+    const cached = await this.cache.get<any>("admin:metrics");
     if (cached) return cached;
 
-    const metrics: AdminMetrics = {
-      faturamento_mes: 32000,
+    const now = new Date();
+    const mesAtual = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+
+    const pedidosMes = await this.prisma.order.count({
+      where: {
+        criado_em: {
+          gte: new Date(now.getFullYear(), now.getMonth(), 1),
+        },
+      },
+    });
+
+    const faturamento = await this.prisma.order.aggregate({
+      _sum: { valor_total: true },
+      where: {
+        criado_em: {
+          gte: new Date(now.getFullYear(), now.getMonth(), 1),
+        },
+      },
+    });
+
+    const totalLeads = await this.prisma.user.count({
+      where: { papel: "cliente" },
+    });
+
+    const leadsNovos = await this.prisma.user.count({
+      where: {
+        papel: "cliente",
+        criado_em: {
+          gte: new Date(now.getFullYear(), now.getMonth(), 1),
+        },
+      },
+    });
+
+    const totalClientes = await this.prisma.user.count();
+
+    const metrics = {
+      faturamento_mes: Number(faturamento._sum.valor_total || 0),
       variacao_faturamento: 14,
-      total_pedidos_mes: 47,
+      total_pedidos_mes: pedidosMes,
       variacao_pedidos: 8,
-      total_leads: 23,
-      leads_novos_mes: 12,
-      total_clientes: 48,
+      total_leads: totalLeads,
+      leads_novos_mes: leadsNovos,
+      total_clientes: totalClientes,
       taxa_churn: 18,
-      ticket_medio: 1240,
+      ticket_medio: pedidosMes > 0
+        ? Math.round(Number(faturamento._sum.valor_total || 0) / pedidosMes)
+        : 0,
       sla_entrega: 94,
       sla_resposta_chat: "1m 30s",
     };
@@ -77,18 +99,35 @@ export class AdminService {
     return metrics;
   }
 
-  async getUsers(): Promise<AdminUser[]> {
-    return this.users;
+  async getUsers() {
+    const users = await this.prisma.user.findMany({
+      orderBy: { nome: "asc" },
+    });
+    return users.map((u) => ({
+      uid: u.uid,
+      email: u.email,
+      nome: u.nome,
+      papel: u.papel,
+      ultimo_acesso: null,
+      ativo: u.ativo,
+    }));
   }
 
-  async updateUserRole(uid: string, papel: string): Promise<AdminUser> {
-    const user = this.users.find((u) => u.uid === uid);
+  async updateUserRole(uid: string, papel: string) {
+    const user = await this.prisma.user.findUnique({ where: { uid } });
     if (!user) throw new Error(`Usuário ${uid} não encontrado`);
-    user.papel = papel;
-    return user;
+
+    return this.prisma.user.update({
+      where: { uid },
+      data: { papel },
+      select: { uid: true, email: true, nome: true, papel: true, ativo: true },
+    });
   }
 
-  async getActivity(limit = 10): Promise<ActivityItem[]> {
-    return this.activity.slice(0, limit);
+  async getActivity(limit = 10) {
+    return this.prisma.activityLog.findMany({
+      orderBy: { tempo: "desc" },
+      take: limit,
+    });
   }
 }

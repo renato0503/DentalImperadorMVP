@@ -6,6 +6,7 @@ interface Product {
   nome: string;
   categoria: string;
   preco_tabela: number;
+  preco_promocional: number | null;
   ncm: string;
   controlado_anvisa: boolean;
 }
@@ -13,6 +14,7 @@ interface Product {
 interface CartItem {
   product: Product;
   quantidade: number;
+  usandoPromocional: boolean;
 }
 
 const CATEGORIAS = [
@@ -22,12 +24,17 @@ const CATEGORIAS = [
   "Anestésicos",
 ];
 
+function precoEfetivo(p: Product): number {
+  return p.preco_promocional ?? p.preco_tabela;
+}
+
 export function OrcamentoPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [categoria, setCategoria] = useState("");
   const [cart, setCart] = useState<CartItem[]>([]);
   const [showProposal, setShowProposal] = useState(false);
+  const [listaAcademica, setListaAcademica] = useState(false);
 
   useEffect(() => {
     const url = categoria
@@ -53,7 +60,7 @@ export function OrcamentoPage() {
             : c
         );
       }
-      return [...prev, { product, quantidade: 1 }];
+      return [{ product, quantidade: 1, usandoPromocional: !listaAcademica }];
     });
   };
 
@@ -73,10 +80,12 @@ export function OrcamentoPage() {
     );
   };
 
-  const total = cart.reduce(
-    (sum, c) => sum + c.product.preco_tabela * c.quantidade,
-    0
-  );
+  const getPreco = (item: CartItem): number =>
+    item.usandoPromocional
+      ? item.product.preco_promocional ?? item.product.preco_tabela
+      : item.product.preco_tabela;
+
+  const total = cart.reduce((sum, c) => sum + getPreco(c) * c.quantidade, 0);
 
   return (
     <div className="page page-orcamento">
@@ -84,6 +93,13 @@ export function OrcamentoPage() {
       <p className="page-subtitle">
         Selecione os produtos e gere uma proposta comercial.
       </p>
+
+      <div className="card" style={{ marginBottom: 16, padding: 12 }}>
+        <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
+          <input type="checkbox" checked={listaAcademica} onChange={(e) => setListaAcademica(e.target.checked)} />
+          <span>Lista Acadêmica (preço tabela cheia — sem desconto)</span>
+        </label>
+      </div>
 
       <div className="orcamento-layout">
         <div className="orcamento-catalogo">
@@ -117,9 +133,20 @@ export function OrcamentoPage() {
                     {p.controlado_anvisa && (
                       <span className="badge-anvisa">Controlado ANVISA</span>
                     )}
-                    <p className="product-preco">
-                      R$ {p.preco_tabela.toFixed(2)}
-                    </p>
+                    {listaAcademica || !p.preco_promocional ? (
+                      <p className="product-preco">
+                        R$ {p.preco_tabela.toFixed(2)}
+                      </p>
+                    ) : (
+                      <p className="product-preco">
+                        <span style={{ textDecoration: "line-through", color: "#999", marginRight: 8 }}>
+                          R$ {p.preco_tabela.toFixed(2)}
+                        </span>
+                        <span style={{ color: "#00A650", fontWeight: "bold", fontSize: 20 }}>
+                          R$ {p.preco_promocional.toFixed(2)}
+                        </span>
+                      </p>
+                    )}
                   </div>
                   <button
                     className="btn btn-primary btn-sm"
@@ -144,7 +171,7 @@ export function OrcamentoPage() {
                   <div key={c.product.id} className="cart-item">
                     <div className="cart-item-info">
                       <strong>{c.product.nome}</strong>
-                      <span>R$ {c.product.preco_tabela.toFixed(2)}</span>
+                      <span>R$ {getPreco(c).toFixed(2)}</span>
                     </div>
                     <div className="cart-item-actions">
                       <button
@@ -194,6 +221,11 @@ export function OrcamentoPage() {
         <div className="modal-overlay" onClick={() => setShowProposal(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <h2>Proposta Comercial</h2>
+            {listaAcademica && (
+              <p style={{ color: "#E31E24", fontWeight: "bold", marginBottom: 12 }}>
+                Lista Acadêmica — preço tabela cheia (sem desconto promocional)
+              </p>
+            )}
             <table className="proposal-table">
               <thead>
                 <tr>
@@ -210,39 +242,29 @@ export function OrcamentoPage() {
                     <td>{c.product.nome}</td>
                     <td>{c.product.sku}</td>
                     <td>{c.quantidade}</td>
-                    <td>R$ {c.product.preco_tabela.toFixed(2)}</td>
-                    <td>
-                      R$ {(c.product.preco_tabela * c.quantidade).toFixed(2)}
-                    </td>
+                    <td>R$ {getPreco(c).toFixed(2)}</td>
+                    <td>R$ {(getPreco(c) * c.quantidade).toFixed(2)}</td>
                   </tr>
                 ))}
               </tbody>
               <tfoot>
                 <tr>
-                  <td colSpan={4}>
-                    <strong>Total</strong>
-                  </td>
-                  <td>
-                    <strong>R$ {total.toFixed(2)}</strong>
-                  </td>
+                  <td colSpan={4}><strong>Total</strong></td>
+                  <td><strong>R$ {total.toFixed(2)}</strong></td>
                 </tr>
               </tfoot>
             </table>
             <p className="proposal-disclaimer">
               Proposta gerada em {new Date().toLocaleDateString("pt-BR")}.
-              Consulte condições comerciais com nosso time de vendas.
+              {listaAcademica
+                ? " Preço tabela cheia — sem incidência de descontos promocionais."
+                : " Consulte condições especiais com nosso time de vendas."}
             </p>
             <div className="modal-actions">
-              <button
-                className="btn btn-primary"
-                onClick={() => window.print()}
-              >
+              <button className="btn btn-primary" onClick={() => window.print()}>
                 Imprimir
               </button>
-              <button
-                className="btn btn-outline"
-                onClick={() => setShowProposal(false)}
-              >
+              <button className="btn btn-outline" onClick={() => setShowProposal(false)}>
                 Fechar
               </button>
             </div>

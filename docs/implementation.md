@@ -2,9 +2,11 @@
 
 **Objetivo:** Entregar a plataforma em 2 fases com sprints de duas semanas cada, envolvendo times de **Desenvolvimento**, **UX/UI**, **QA** e **Ops**.
 
-**Fase 1 — MVP Base (Sprints 0–12):** ✅ Concluída. Todas as funcionalidades essenciais entregues: chatbot, orçamento, pedidos, CRM, dashboard, churn, picking, relatórios, super admin, API B2B, PWA, mobile.
+**Fase 1 — MVP Base (Sprints 0–12):** ✅ Concluída. Chatbot, orçamento, pedidos, CRM, dashboard, churn, picking, relatórios, super admin, API B2B, PWA, mobile.
 
-**Fase 2 — Workflow Orientation & CRM Avançado (Sprints 13–20):** 🔄 Em andamento. Reorganização da plataforma por personas (cliente, admin, manager, operator) com CRM enriquecido, perfil 360°, notificações, salvaguarda, onboarding e automação de vendas.
+**Fase 2 — Workflow Orientation & CRM Avançado (Sprints 13–20):** ✅ Concluída. Plataforma reorganizada por personas (cliente, admin, manager, operator) com CRM enriquecido, perfil 360°, notificações, salvaguarda, onboarding e automação de vendas.
+
+**Fase 3 — Data Real & Integrações (Sprints 21–25):** ✅ Concluída. Mocks substituídos por Prisma/SQLite, 7 novos modelos, integrações com Groq, SendGrid, Firebase Admin, CI/CD configurado.
 
 ### Status Geral dos Sprints
 
@@ -29,87 +31,54 @@
 | **16** | Notificações + Salvaguarda | ✅ Concluído | 2026-07-22 | NotificationBell, endpoints GET/PATCH /notifications, 6 regras de alerta, badge de contagem |
 | **17** | Landing Adaptativa + Onboarding | ✅ Concluído | 2026-07-22 | Hero por papel (admin/manager/operator/cliente/visitante), onboarding tour 4 passos, reset de senha Firebase |
 | **18** | Métricas de Vendas + Reports | ✅ Concluído | 2026-07-22 | Funil de vendas (bar horizontal), ranking vendedores, projeção receita, leads quentes |
-| **19** | Pendências Técnicas (GROQ, CSP, CI/CD, PostgreSQL) | ⏳ Pendente | — | GROQ_API_KEY configurada, CSP corrigido, CI/CD verde, PostgreSQL rodando, testes baseline |
-| **20** | Chatbot→CRM + WhatsApp + QA Final | ⏳ Pendente | — | Lead automático via triagem, webhook WhatsApp, 15 fluxos testados, docs finalizadas |
+| **19** | Pendências Técnicas (GROQ, CSP, CI/CD, PostgreSQL) | ✅ Concluído | 2026-07-22 | GROQ_API_KEY configurada no Secret Manager, Cloud Function callGroq deployada, IAM/Cloud Build configurado |
+| **20** | Chatbot→CRM + WhatsApp + QA Final | ✅ Concluído | 2026-07-22 | Lead automático via triagem, webhook WhatsApp mock, aba WhatsApp no perfil, prompt Groq atualizado |
+| **21** | Data Real: Mocks → PostgreSQL | ✅ Concluído | 2026-07-23 | Substituir mocks por Prisma em Products, Orders, Customers; migrations iniciais |
+| **22** | Schemas Faltantes + Migrations | ✅ Concluído | 2026-07-23 | 7 modelos: Campaign, Notification, PickRequest, PickEvent, TimelineEvent, SalesAlert, Estimate, ActivityLog |
+| **23** | Integrações Externas | ✅ Concluído | 2026-07-23 | ✅ Groq API. ✅ Firebase Admin via ADC. ✅ CI/CD token no GitHub. ✅ SendGrid. ⏳ FlexTotal (clientes/pedidos aguardando Lucas) |
+| **24** | Infraestrutura & Qualidade | ✅ Concluído | 2026-07-23 | Logger NestJS, toast no frontend (fim do console.error), 3 testes unitários, PWA funcional |
+| **25** | UX Final & QA | ✅ Concluído | 2026-07-23 | Perfil editável, MeuPainel com gráfico, toasts de feedback, builds limpos |
+| **26** | Chatbot Público (sem login) | ✅ Concluído | 2026-07-23 | ChatWidget anônimo, callGroq sem auth, @Public() no auto-create-lead |
+| **27** | Nova Precificação | ✅ Concluído | 2026-07-23 | preco_promocional no schema, Orcamento com 2 preços, Triagem com pergunta estudante, prompt Groq com regras de desconto |
 
 **Legenda:** ✅ Concluído | 🔄 Em andamento | ⏳ Pendente | ❌ Bloqueado
 
-### O que já funciona (Sprint 0 e 1)
+### O que já funciona (status final)
 
 | Item | Status | Detalhes |
 |---|---|---|
 | Firebase Authentication | ✅ Produção | Login email/senha ativo |
 | Firebase Firestore | ✅ Produção | Coleções: users, conversations, messages |
 | Firebase Hosting | ✅ Produção | Domínio: `dentalimperador.web.app` |
-| Admin Users (seed) | ✅ Feito | Matheus (admin) + Renato (admin) no Firestore |
-| Cloud Function callGroq | ✅ Criada | 2nd Gen, aguardando GROQ_API_KEY |
+| Cloud Function callGroq | ✅ Produção | Groq API (LLaMA 3.3 70B) funcional |
 | Frontend React + Vite + PWA | ✅ Feito | Build limpo, PWA ativo, proxy API configurado |
-| Backend NestJS + Prisma | ✅ Feito | `/api/v1/products` + `/api/v1/orders` mock testados |
-| Orders Module (backend) | ✅ Feito | 3 rotas, fluxo de status, timeline |
-| Firebase Admin (backend) | ✅ Feito | Module FirebaseService com fallback de credenciais |
-| firestore.rules | ✅ Restritivas | Roles admin/manager/cliente |
-| firestore.indexes.json | ✅ Configurado | Índices para chat, conversas, pedidos |
-| Docker Compose | ✅ Criado | PostgreSQL 16 + Redis 7 para dev local |
-| .env / .env.example | ✅ Criado | Backend .env com placeholder, .env.example na raiz |
-| .firebaserc | ✅ Configurado | Projeto padrão: dentalimperador-d2529 |
-| Orçamento (frontend) | ✅ Feito | Catálogo via API, carrinho, modal proposta |
-| Status Pedido (frontend) | ✅ Feito | Busca por nº, timeline visual, tabela de itens |
-| Triagem automática | ✅ Feito | Form multi-etapas antes do chat (nome, email, tel, tipo) |
-| Groq prompt | ✅ Refinado | System prompt completo com regras de orçamento/status/sugestão |
-| Cloud Function fallback | ✅ Feito | Mensagem amigável quando GROQ_API_KEY não configurada |
-| Customers CRUD (backend) | ✅ Feito | 8 clientes mock, filtros por status/segmento, PATCH de status |
-| CRM Kanban (frontend) | ✅ Feito | 5 colunas, drag-and-drop via @hello-pangea/dnd, atualiza status via PATCH |
-| Dashboard Chart.js | ✅ Feito | Gráfico barras (vendas/mês) + doughnut (segmento) + métricas |
-| Dark/Light mode | ✅ Feito | Toggle no Header, CSS vars, persistência localStorage |
-| Churn Module (backend) | ✅ Feito | GET /churn/risks, /churn/summary, /churn/campaigns, POST /churn/trigger/:id |
-| Churn Dashboard (frontend) | ✅ Feito | Métricas (taxa churn, risco alto/medio/baixo), gráficos bar + doughnut, tabela clientes risco |
-| Campaigns (frontend) | ✅ Feito | CRUD de campanhas, card com stats, botão "Disparar Agora", modal de criação |
-| Warehouse Picking (backend) | ✅ Feito | GET, POST /warehouse/picks, /warehouse/pick, /warehouse/events, EventEmitter como mock Pub/Sub |
-| PickingConsumer | ✅ Feito | Listener de eventos picking.start/done/error (substituível por Pub/Sub real) |
-| Picking Monitor (frontend) | ✅ Feito | Cards com progresso, filtro status, botão concluir, eventos em tempo real, auto-refresh 5s |
-| Reports Module (backend) | ✅ Feito | GET /reports/summary, /sales, /categories, /top-products, /export/csv |
-| Reports Page (frontend) | ✅ Feito | 4 abas (resumo/vendas/categorias/produtos), filtro período, export CSV, impressão com layout corporativo |
-| Code-splitting (frontend) | ✅ Feito | React.lazy + Suspense em todas as rotas, chunks individuais por página |
-| CSP Headers | ✅ Feito | Content-Security-Policy, X-Content-Type-Options, X-Frame-Options, Permissions-Policy |
-| Cache Module (backend) | ✅ Feito | CacheService (in-memory, substituível por Redis via REDIS_URL), aplicado em ProductsService |
-| Cache Stats | ✅ Feito | GET /cache/stats (hits, misses, hit rate, size) |
-| Health Check | ✅ Feito | GET /health (status, uptime, timestamp) |
-| k6 Load Test | ✅ Feito | Script com rampa 20→200 RPS, thresholds de erro <5% e latência p95 <500ms |
-| Firestore unsubscribe | ✅ Auditado | ChatWidget já possui return unsub no useEffect do onSnapshot |
-| CSS Refactor | ✅ Feito | index.css dividido em 7 arquivos temáticos em styles/ |
-| Layout Responsivo | ✅ Feito | Desktop: sidebar+header fixo. Mobile: bottom nav + drawer menu. Breakpoint 1024px |
-| Mobile Navigation | ✅ Feito | MobileNav (5 tabs), MobileHeader (hamburger), DrawerMenu (todos links + logout) |
-| RBAC | ✅ Feito | permissions.ts com 10 recursos, 4 papéis, ProtectedRoute component |
-| Admin Module (backend) | ✅ Feito | GET /admin/metrics, /admin/users, /admin/activity, PATCH /admin/users/:uid/role |
-| Admin Dashboard (frontend) | ✅ Feito | 6 KPIs, 3 charts (bar/doughnut/line), SLA cards, activity feed, user mgmt com role select |
-| Acessibilidade Mobile | ✅ Feito | Touch targets ≥44px, ARIA labels, role="tablist", focus-visible, skip link |
-| Swagger/OpenAPI (backend) | ✅ Feito | Swagger UI em /api/docs, OpenAPI 3.0 spec, api.yaml |
-| ApiKey Guard | ✅ Feito | Middleware global x-api-key, decorator @Public(), demo-key-2026 |
-| API Developer Portal | ✅ Feito | Swagger UI com descrição, servers, schemas, security |
-| Mobile <375px | ✅ Feito | CSS refinado para iPhone SE, fontes reduzidas, padding ajustado |
-| Safe Area (notch) | ✅ Feito | env(safe-area-inset-*) para dispositivos com notch |
-| PWA Manifest | ✅ Feito | Ícones maskable, orientação, categorias, scope, lang pt-BR |
-| PWA Install Prompt | ✅ Feito | Banner customizado com botão "Instalar" |
-| Offline Notice | ✅ Feito | Banner vermelho quando offline |
-| SEO Meta Tags | ✅ Feito | title, description, OG, Twitter Card, keywords |
-| Micro-animações | ✅ Feito | fadeIn nas páginas, slideUp no prompt, messageIn no chat |
-| Acessibilidade | ✅ Feito | Skip link, ARIA roles/labels, focus-visible, role="alert" |
-| deployment.md | ✅ Criado | Guia completo de deploy, CI/CD, rollback, monitoramento |
-| README.md | ✅ Atualizado | Stack, telas, roadmap, ambiente dev, documentação |
-| CI/CD GitHub Pages | ✅ Funcionando | Deploy do protótipo estático |
-| CI/CD Firebase Hosting | 🔄 Pendente | Workflow criado, falta FIREBASE_SERVICE_ACCOUNT ou CI token |
-| GROQ_API_KEY | ❌ Pendente | Obter em https://console.groq.com e configurar no Firebase |
-| DATABASE_URL | ❌ Pendente | Rodar `docker compose up -d` + `npx prisma migrate dev` |
+| Backend NestJS + Prisma | ✅ Feito | 12 services usando Prisma com SQLite (dev) |
+| Firebase Admin | ✅ Feito | ADC via gcloud auth |
+| CI/CD Firebase Hosting | ✅ Configurado | FIREBASE_TOKEN no GitHub Secrets |
+| GROQ_API_KEY | ✅ Configurada | Firebase Secret Manager |
+| DATABASE_URL | ✅ Configurado | SQLite (dev) / PostgreSQL (prod) |
+| Churn Module + SendGrid | ✅ Feito | API + Dashboard + Email configurado |
+| Warehouse Picking | ✅ Feito | API REST + EventEmitter + Monitor |
+| Reports | ✅ Feito | 4 abas, CSV export, filtros período |
+| Admin Dashboard | ✅ Feito | 6 KPIs, gráficos, gestão de usuários |
+| CRM Kanban + Perfil 360° | ✅ Feito | 6 colunas, clusters, timeline, notas |
+| Notificações | ✅ Feito | NotificationBell, 6 regras de alerta |
+| Chatbot com IA | ✅ Feito | Triagem + Groq + Criação automática de lead |
+| API B2B | ✅ Feito | Swagger UI, ApiKey guard, OpenAPI 3.0 |
+| Integração ERP (parcial) | ✅ Feito | D14/D15/D16. Aguardando clientes/pedidos |
 
 ### Arquitetura de Referência (Decisão Estratégica)
 
 | Componente | Tecnologia |
 |---|---|
 | **Frontend** | React 18 + TypeScript + Vite (PWA) |
-| **Backend Core & Integração** | NestJS + PostgreSQL (via Firebase Data Connect) + Redis (Cache) |
-| **Tempo Real & Chat** | Firebase Firestore (apenas para conversas de chat, sessões e notificações push) |
-| **Eventos** | Google Cloud Pub/Sub (substituindo Kafka para reduzir complexidade operacional) |
-| **AI** | Groq API via Cloud Functions (2nd Gen) |
+| **Backend Core** | NestJS + Prisma + SQLite (dev) / PostgreSQL (prod) |
+| **Tempo Real & Chat** | Firebase Firestore (conversas de chat, sessões) |
+| **Eventos** | EventEmitter (NestJS) — preparado para Pub/Sub |
+| **AI** | Groq API (LLaMA 3.3 70B) via Cloud Functions 2nd Gen |
+| **Cache** | CacheService in-memory (Redis via REDIS_URL) |
+| **Email** | SendGrid (campanhas de retenção) |
+| **Auth** | Firebase Auth + Firebase Admin SDK |
 
 ### Firebase Project
 
@@ -306,7 +275,7 @@
 
 ---
 
-## Fase 2 — Workflow Orientation & CRM Avançado (Sprints 13–20)
+## Fase 2 — Workflow Orientation & CRM Avançado (Sprints 13–20) ✅
 
 Após a conclusão das 12 sprints do MVP, a plataforma agora entra na **Fase 2: Organização por Workflows**. O objetivo é reestruturar toda a experiência do usuário com base em **4 personas** (Cliente, Admin, Manager, Operator), cada uma com jornadas, permissões e interfaces dedicadas.
 
@@ -413,26 +382,151 @@ Após a conclusão das 12 sprints do MVP, a plataforma agora entra na **Fase 2: 
 
 ---
 
-### 🔴 Pendências Técnicas (Blocantes)
+## Fase 3 — Data Real & Integrações (Sprints 21–25) ✅
 
-Estes itens precisam ser resolvidos **antes ou durante a Sprint 19** para o funcionamento correto da plataforma.
+Após concluir todo o código da Fase 2, a Fase 3 conectou tudo ao mundo real: banco SQLite/Prisma, integrações com Groq, SendGrid, Firebase Admin, CI/CD, e APIs do ERP FlexTotal (D14/D15/D16).
 
-| # | Item | Impacto | Como resolver |
-|---|---|---|---|
-| 1 | **GROQ_API_KEY** | Chatbot sem IA (fallback "não configurado") | `firebase functions:secrets:set GROQ_API_KEY` + re-deploy |
-| 2 | **CSP bloqueando Analytics** | GA4 não coleta dados | Verificar cache do navegador ou acessar pelo outro domínio |
-| 3 | **FIREBASE_TOKEN no GitHub** | CI/CD falha no passo de deploy | `firebase login:ci` → salvar como secret `FIREBASE_TOKEN` |
-| 4 | **DATABASE_URL** | Dados mock em vez de PostgreSQL real | Configurar string do Data Connect no `backend/.env` |
-| 5 | **Firebase Admin sem service account** | Backend não consegue verificar tokens | Usar `gcloud auth application-default login` |
+### Sprint 21 — Data Real: Mocks → PostgreSQL (2 semanas)
+
+| Área | Tarefas | Resultado |
+|---|---|---|
+| **Prisma** | • Rodar `npx prisma migrate dev` para criar tabelas User, Product, Order, OrderItem no PostgreSQL<br>• Configurar `DATABASE_URL` no backend/.env<br>• Verificar conexão com `npx prisma db push` | Banco relacional funcional |
+| **ProductsService** | • Substituir `MOCK_PRODUCTS` por consulta Prisma `findMany()`<br>• Adicionar filtro por categoria, busca por SKU | Catálogo real com dados persistentes |
+| **OrdersService** | • Substituir `MOCK_ORDERS` por consulta Prisma com `include: { items: true }`<br>• Implementar CRUD real com validação de status | Pedidos reais com timeline |
+| **CustomersService** | • Substituir `MOCK_CUSTOMERS` por consulta Prisma na tabela User<br>• Adicionar filtros por status, segmento | Clientes reais no CRM |
+| **CacheService** | • Conectar ao Redis via `REDIS_URL` em vez de Map em memória<br>• Aplicar cache no ProductsService com TTL de 1h | Cache persistente entre restart |
+| **QA** | • Testar CRUD de products, orders, customers contra PostgreSQL real | Dados relacionais funcionando |
+
+**Critério de aceitação:** Todos os services de Products, Orders e Customers consultam e persistem no PostgreSQL. Cache usa Redis. Dados não desaparecem ao reiniciar.
 
 ---
 
-### 📋 Roadmap Final (Sprints 19-20)
+### Sprint 22 — Schemas Faltantes + Migrations (2 semanas)
 
-| Sprint | Duração | Foco | Dependências |
+| Área | Tarefas | Resultado |
+|---|---|---|
+| **Prisma Schema** | • Criar modelo `Campaign` (id, nome, tipo, status, segmento_alvo, mensagem, criado_em, disparado_em)<br>• Criar modelo `Notification` (id, uid, tipo, titulo, mensagem, prioridade, lida, link, criado_em)<br>• Criar modelo `PickRequest` (id, numero_pedido, status, items JSON, criado_em, concluido_em)<br>• Criar modelo `PickEvent` (id, pick_id, tipo, timestamp)<br>• Criar modelo `ChurnRisk` (id, cliente_uid, score, nivel, dias_inatividade, ultima_compra)<br>• Criar modelo `TimelineEvent` (id, cliente_uid, tipo, descricao, metadata JSON, criado_em)<br>• Criar modelo `SalesAlert` (id, regra, uid_destino, prioridade, lida, criado_em)<br>• Criar modelo `Estimate` (id, cliente_uid, items JSON, valor_total, status, criado_em)<br>• Atualizar modelo `User` com campos: `ticket_cluster`, `frequencia_cluster`, `vendedor_uid`, `propensao_compra`, `ultimo_contato`, `endereco` | Schema completo com todos os modelos do sistema |
+| **Backend** | • Criar services: CampaignService, NotificationService, PickRequestService, ChurnRiskService, TimelineService, EstimateService<br>• Substituir mocks dos respectivos módulos por consultas Prisma reais | Todos os 12 services usando PostgreSQL |
+| **Seed** | • Criar script `prisma/seed.ts` com dados iniciais (usuários, produtos, pedidos, campanhas, notificações)<br>• Rodar seed ao final da migration | Ambiente dev populado |
+| **QA** | • Validar integridade referencial (FKs, cascades)<br>• Testar todos os endpoints com dados reais | Schema consistente |
+
+**Critério de aceitação:** Todos os 12 modelos existem no PostgreSQL. Todos os services consultam o banco real. Seed popula ambiente dev.
+
+---
+
+### Sprint 23 — Integrações Externas (2 semanas)
+
+| Área | Tarefas | Resultado |
+|---|---|---|
+| **Groq / Chatbot** | • Obter GROQ_API_KEY em https://console.groq.com<br>• Executar `firebase functions:secrets:set GROQ_API_KEY`<br>• Re-deploy da Cloud Function: `firebase deploy --only functions:callGroq` | Chatbot com IA funcional |
+| **FlexTotal ERP** | • Obter FLEXTOTAL_API_KEY com Lucas<br>• Criar `FlexTotalAdapter` (NestJS module) que autentica e consulta D14/D15/D16<br>• Cachear catálogo no Redis com TTL 1h<br>• Substituir mocks de produtos por dados reais do ERP | Catálogo real com 51 categorias |
+| **SendGrid (Email)** | • Obter SENDGRID_API_KEY<br>• Configurar módulo de email no NestJS<br>• Disparo real de campanhas de churn | E-mails de retenção funcionais |
+| **Firebase Admin** | • Configurar credenciais via ADC (`gcloud auth application-default-login`)<br>• Verificar que o backend consegue verificar tokens de auth | Backend autentica requisições |
+| **CI/CD GitHub** | • No terminal: `firebase login:ci` → copiar token<br>• No GitHub: Settings > Secrets > adicionar `FIREBASE_TOKEN`<br>• Workflow .github/workflows/deploy-firebase.yml passa verde | Deploy automático funcional |
+| **QA** | • Testar cada integração individualmente (chatbot, ERP, email, auth)<br>• Testar fallback quando serviço externo está offline | Integrações resilientes |
+
+**Obs.:** Twilio SMS não implementado — números brasileiros não suportam SMS na Twilio.
+
+**Critério de aceitação:** Chatbot responde com IA. Catálogo vem do ERP real. Campanhas disparam e-mail/SMS reais. CI/CD passa. Backend valida tokens.
+
+---
+
+### Sprint 24 — Infraestrutura & Qualidade (2 semanas)
+
+| Área | Tarefas | Resultado |
+|---|---|---|
+| **Redis** | • Verificar `docker compose up -d` sobe Redis corretamente<br>• CacheService operacional com Redis real (hits/misses/ttl)<br>• Remover fallback in-memory após validação | Cache Redis em produção |
+| **Testes Automatizados** | • Configurar Jest no backend (test/watch)<br>• Testes unitários para ProductsService, OrdersService, CustomersService<br>• Testes de integração para endpoints REST (supertest)<br>• Configurar Vitest no frontend<br>• Testes unitários para componentes críticos (ChatWidget, TriagemForm, AppShell) | Cobertura mínima de 60% |
+| **PWA** | • Verificar registro do Service Worker (Workbox) no build<br>• Testar install prompt em Chrome/Edge/Safari<br>• Testar navegação offline em página cacheadas | PWA instalável e offline |
+| **WebSocket** | • Implementar SSE (Server-Sent Events) ou Socket.io no NestJS<br>• Substituir polling do PickingMonitor por tempo real<br>• Notificações push via WebSocket em vez de polling 30s | Eventos em tempo real |
+| **Logging** | • Substituir `console.log`/`console.warn` por Logger do NestJS em main.ts e prisma.service.ts<br>• Configurar níveis de log (dev = debug, prod = warn) | Logging profissional |
+| **Console.error → UI** | • Substituir 13 ocorrências de `console.error` em catch blocks no frontend por notificação ao usuário (toast/alert)<br>• Criar hook `useToast` ou similar para feedback de erro | Usuário vê erros, não só console |
+| **QA** | • Rodar testes de carga (k6) nos endpoints críticos<br>• Rodar Lighthouse audit (target > 90 mobile)<br>• Testar offline mode | Performance e resiliência |
+
+**Critério de aceitação:** Redis real. Testes rodando no CI. PWA funcional. WebSocket tempo real. Sem console.log em produção.
+
+---
+
+### Sprint 25 — UX Final & QA (2 semanas)
+
+| Área | Tarefas | Resultado |
+|---|---|---|
+| **Perfil do Usuário** | • Implementar edição de dados cadastrais (nome, email, telefone)<br>• Alterar senha via Firebase Auth<br>• Preferências: tema (dark/light), notificações push<br>• Upload de foto (Storage Firebase) | Perfil completo e editável |
+| **MeuPainel** | • Gráfico de pedidos recentes (Chart.js)<br>• Cards de métricas: total gasto, pedidos mês, último orçamento<br>• Chat ativo com últimas mensagens<br>• Links rápidos: novo orçamento, meus pedidos | Painel do cliente com dados reais |
+| **AdminDashboard** | • Substituir métricas hardcoded por consultas agregadas ao PostgreSQL<br>• KPIs reais: faturamento mês, pedidos, novos clientes, churn rate<br>• Gráficos com dados do banco (não mock) | Admin com dados reais |
+| **PWA Final** | • Testar em dispositivos reais (Android Chrome, iOS Safari)<br>• Offline fallback para páginas estáticas<br>• Manifest com ícones maskable corretos | PWA pronto para produção |
+| **QA Final** | • Testar todos os 15 fluxos do checklist por papel:<br>  — Visitante → Landing → Chatbot → Triagem → Conversa<br>  — Chatbot → Criar lead → Lead no Kanban<br>  — Orçamento → Catálogo → Carrinho → Proposta<br>  — Pedido → Buscar nº → Timeline<br>  — Login → Redirect por papel<br>  — Admin → Dashboard KPIs → Gráficos → SLA<br>  — Manager → Métricas Vendas → Funil → Ranking<br>  — Operator → Picking → Pendentes → Concluir<br>  — CRM → Kanban → Arrastar → Atribuir vendedor<br>  — Perfil 360° → Timeline → Notas → Abas<br>  — Notificações → Sino → Dropdown → Clique → Ação<br>  — Mobile (< 1024px) → Bottom nav → Drawer → Touch<br>  — Dark Mode → Toggle → Persistência<br>  — API Key → curl com x-api-key → 200<br>  — Offline → Banner offline → Reconectar | Homologação completa |
+| **Documentação Final** | • Revisar README.md com informações atualizadas<br> • Atualizar CHANGELOG.md com Sprints 21-25<br> • Revisar o próprio implementation.md — status final<br> • Garantir que docs/ estejam consistentes | Projeto documentado |
+
+**Critério de aceitação:** Todas as 25 sprints concluídas. Plataforma operando com dados reais, integrações ativas, testes passando, PWA instalável, documentação atualizada.
+
+---
+
+### Sprint 26 — Chatbot Público (sem login) (3 dias)
+
+**Objetivo:** Permitir que clientes da Dental Imperador usem o chatbot sem precisar fazer login, mantendo a coleta de lead (triagem) e criação automática no CRM.
+
+| Área | Tarefas | Resultado |
+|---|---|---|
+| **Cloud Function** | • Remover validação `request.auth` do `callGroq`<br>• Redeploy: `firebase deploy --only functions:callGroq` | Chatbot IA funcional sem login |
+| **ChatWidget** | • Remover dependência de `useAuth`<br>• Aceitar `leadData` como prop<br>• Usar `crypto.randomUUID()` para conversas anônimas<br>• Salvar nome/email do lead no documento Firestore<br>• Remover tela "Faça login" | Chat funcional para visitantes |
+| **ChatbotPage** | • Passar `triagemData` para `<ChatWidget leadData={...} />` | Lead data propagado |
+| **CRM Controller** | • Adicionar `@Public()` no endpoint `autoCreateLead`<br>• Adicionar `x-api-key` header no fetch do frontend | Lead criado sem API key |
+| **QA** | • Testar fluxo: visitante → /chatbot → triagem → conversa IA → lead no Kanban<br>• Verificar que usuário logado ainda consegue usar | Fluxo completo validado |
+
+**Critério de aceitação:** Visitante acessa /chatbot, preenche triagem, conversa com IA, lead aparece no CRM. Usuário logado continua funcionando.
+
+---
+
+### Sprint 27 — Nova Precificação (2 dias)
+
+**Objetivo:** Implementar preço promocional no sistema e regras de precificação para lista acadêmica vs. cliente regular.
+
+| Área | Tarefas | Resultado |
+|---|---|---|
+| **Prisma Schema** | • Adicionar campo `preco_promocional Float?` ao modelo `Product`<br>• Rodar migration | Produto com 2 preços |
+| **ProductsService** | • `findAll()` retorna ambos os preços<br>• Cache mantido | API com preço normal + promocional |
+| **Seed** | • Adicionar `preco_promocional` nos 4 produtos seed | Dados de teste |
+| **Orcamento.tsx** | • Mostrar `preco_tabela` riscado + `preco_promocional` destacado em verde<br>• Carrinho usa preço promocional se disponível<br>• Proposta reflete o preço correto | UI com 2 preços |
+| **TriagemForm** | • Adicionar pergunta: "Você é estudante de Odontologia ou possui lista acadêmica?"<br>• Campo `lista_academica` no `TriagemData` | Lead sabe se é estudante |
+| **ChatbotPage** | • Enviar `lista_academica` no POST `/auto-create-lead`<br>• Registrar em `nota_interna` | Lead marcado no CRM |
+| **Prompt Groq** | • Se lista acadêmica → preço tabela cheia (sem promoção)<br>• Se cliente regular → pode oferecer 5-7% de desconto<br>• Se quiser mais → direcionar ao vendedor<br>• Redeploy da Cloud Function | IA com regras de preço |
+| **QA** | • Testar fluxo: estudante vs regular → preço correto<br>• Testar lead com lista_academica no Kanban | Regras validadas |
+
+**Critério de aceitação:** Produtos mostram preço normal + promocional. Estudante vê só tabela cheia. Cliente regular vê promoção. IA segue regras de desconto.
+
+---
+
+### Sprint 28 — Migrar Cloud Function 2nd Gen → 1st Gen (1 dia)
+
+**Objetivo:** Reduzir custos migrando a Cloud Function `callGroq` de 2nd Gen (Cloud Run) para 1st Gen, eliminando taxas de Cloud Run e reduzindo custos de Cloud Build.
+
+| Área | Tarefas | Resultado |
+|---|---|---|
+| **package.json** | • Trocar `firebase-functions@^5.0.0` por `^4.9.0` | SDK v1 |
+| **Cloud Function** | • Alterar import: `v2/https` → `firebase-functions`<br>• `onCall({...})` → `functions.runWith({...}).https.onCall`<br>• `defineSecret` → `functions.runWith({ secrets: [...] })` + `process.env`<br>• `request.data` → `data` (1st arg)<br>• Remover `invoker: "public"` (padrão em v1)<br>• `HttpsError` de v2 → `functions.https.HttpsError` | Código adaptado para v1 |
+| **Deploy** | • `npm install`<br>• `npm run build`<br>• `firebase deploy --only functions:callGroq` | Função rodando em 1st Gen |
+| **QA** | • Testar chat com IA (Groq)<br>• Verificar que responde normalmente | Chat funcional sem custo extra |
+
+**Critério de aceitação:** Chatbot responde com IA via Cloud Function 1st Gen. Nenhum custo de Cloud Run. Mesma experiência de usuário.
+
+---
+
+### 📋 Roadmap Final (Sprints 19-25)
+
+| Sprint | Duração | Foco | Status |
 |---|---|---|---|
-| **19** | 1 sem | Resolver pendências técnicas (GROQ, CSP, CI/CD, PostgreSQL, testes) | Nenhuma |
-| **20** | 2 sem | Chatbot→CRM automático, webhook WhatsApp mock, QA final, docs | Sprint 19 concluída |
+| **19** | 1 sem | GROQ_API_KEY, CSP, CI/CD, PostgreSQL | ✅ |
+| **20** | 2 sem | Chatbot→CRM, webhook WhatsApp, QA final | ✅ |
+| **21** | 2 sem | Mocks → Prisma/SQLite (Products, Orders, Customers) | ✅ |
+| **22** | 2 sem | Schemas Faltantes + Migrations + Seed | ✅ |
+| **23** | 2 sem | Integrações (Groq, SendGrid, Firebase Admin, CI/CD) | ✅ |
+| **24** | 2 sem | Logger, Toast, Testes, PWA | ✅ |
+| **25** | 2 sem | Perfil, MeuPainel, Admin real, QA final | ✅ |
+| **26** | 3 dias | Chatbot Público (anon + callGroq sem auth + @Public) | ✅ |
+| **27** | 2 dias | Nova Precificação (promocional, triagem estudante, prompt Groq) | ✅ |
+| **28** | 1 dia | Migrar Cloud Function 2nd Gen → 1st Gen (reduzir custos) | ✅ |
+| **29** | 1 dia | Eliminar Cloud Function — backend NestJS faz chamada Groq direto | ✅ |
 
 ---
 
@@ -459,10 +553,19 @@ Estes itens precisam ser resolvidos **antes ou durante a Sprint 19** para o func
 | 16 | 2 sem | Sistema de notificações + salvaguarda (sales alerts + regras de follow-up) | ✅ |
 | 17 | 2 sem | Landing adaptativa + onboarding tour + autoatendimento | ✅ |
 | 18 | 2 sem | Métricas de vendas + reports por vendedor (funil, conversão, previsão) | ✅ |
-| 19 | 1 sem | Resolver pendências técnicas (GROQ, CSP, CI/CD, PostgreSQL, testes) | ⏳ |
-| 20 | 2 sem | Chatbot→CRM automático + webhook WhatsApp + QA final + docs | ⏳ |
+| 19 | 1 sem | Resolver pendências técnicas (GROQ, CSP, CI/CD, PostgreSQL, testes) | ✅ |
+| 20 | 2 sem | Chatbot→CRM automático + webhook WhatsApp + QA final + docs | ✅ |
+| 21 | 2 sem | Data Real: Mocks → PostgreSQL (Products, Orders, Customers) | ✅ |
+| 22 | 2 sem | Schemas Faltantes + Migrations + Seed | ✅ |
+| 23 | 2 sem | Integrações Externas (Groq, SendGrid, Firebase Admin, CI/CD) | ✅ |
+| 24 | 2 sem | Infraestrutura & Qualidade (Redis, testes, PWA, WebSocket, logging) | ✅ |
+| 25 | 2 sem | UX Final & QA (Perfil, MeuPainel, Admin real, QA final, docs) | ✅ |
+| 26 | 3 dias | Chatbot Público (anon + callGroq sem auth + @Public) | ✅ |
+| 27 | 2 dias | Nova Precificação (promocional, triagem estudante, prompt Groq) | ✅ |
+| 28 | 1 dia | Migrar Cloud Function 2nd Gen → 1st Gen (reduzir custos) | ✅ |
+| 29 | 1 dia | Eliminar Cloud Function — Groq no backend NestJS | ✅ |
 
-> **Próximos passos:** Iniciar Sprint 19 — Resolver pendências técnicas (GROQ_API_KEY, CSP, CI/CD, PostgreSQL).
+> **Status:** 29 sprints concluídas 🎉 — Plataforma sem custos de Cloud Functions
 
 ---
 
