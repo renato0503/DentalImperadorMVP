@@ -1,123 +1,128 @@
-# Stack Tecnológica — Dental Imperador
+# Stack Tecnológica — Dental Imperador (v6.0.0)
 
 ## Projeto Firebase
 
 | Propriedade | Valor |
 |---|---|
 | Project ID | `dentalimperador-d2529` |
+| Domínio de produção | `dentalimperador.web.app` |
 | Auth Domain | `dentalimperador-d2529.firebaseapp.com` |
 | Storage Bucket | `dentalimperador-d2529.firebasestorage.app` |
-| App ID | `1:330816807481:web:f3b98cbe9a24aaac9763e8` |
-| Domínio de produção | `dentalimperador.web.app` |
 
 ## Serviços Firebase Ativos
 
 | Serviço | Status | Uso |
 |---|---|---|
-| **Authentication** | Produção | Login de usuários internos (admin/manager/operator) |
-| **Data Connect (PostgreSQL)** | Produção | Banco relacional: customers, orders, products, inventory |
-| **Firestore** | Produção | Apenas conversas de chat, sessões e notificações push |
-| **Storage** | Produção | Assets, imagens de produtos, anexos |
-| **Hosting** | Produção | Deploy do frontend (PWA) |
-| **Analytics** | Produção | Métricas de uso do site |
+| **Authentication** | Produção | Login via email/senha (admin, manager, operator, cliente) |
+| **Firestore** | Produção | Conversas do chat, sessões |
+| **Hosting** | Produção | Deploy do frontend PWA |
+| **Storage** | Produção | Assets e anexos |
 
 ## Arquitetura Geral
 
 ```
-┌──────────────────────────────────────────────────────┐
-│                  Frontend (PWA)                        │
-│         React 18 + TypeScript + Vite                   │
-│              Firebase Hosting                          │
-└──────────┬──────────────────────────┬──────────────────┘
-           │                          │
-           ▼                          ▼
-┌──────────────────┐    ┌──────────────────────────┐
-│   Firebase Auth   │    │   Backend Core (NestJS)   │
-│   (Identity)      │    │   Cloud Run / Compute      │
-└──────────────────┘    └──────────┬──────────────────┘
-                                   │
-                    ┌──────────────┼──────────────┐
-                    ▼              ▼              ▼
-           ┌────────────┐ ┌────────────┐ ┌────────────┐
-           │ PostgreSQL  │ │   Redis    │ │  Firestore  │
-           │ (Data Conn.)│ │  (Cache)   │ │  (Chat)     │
-           └────────────┘ └────────────┘ └────────────┘
-                    │              │
-                    ▼              ▼
-           ┌──────────────────────────────────┐
-           │      Google Cloud Pub/Sub          │
-           │  (eventos: picking, pedidos, etc) │
-           └──────────────────────────────────┘
+┌─────────────────────────────────────────────┐
+│              Frontend (PWA)                   │
+│     React 18 + TypeScript + Vite              │
+│         Firebase Hosting                      │
+└──────────┬────────────────────┬──────────────┘
+           │                    │
+           ▼                    ▼
+┌──────────────────┐  ┌────────────────────────┐
+│  Firebase Auth    │  │  Backend (NestJS)       │
+│  (Identity)       │  │  Railway (Cloud)        │
+└──────────────────┘  └──────────┬─────────────┘
+                                 │
+                    ┌────────────┼────────────┐
+                    ▼            ▼            ▼
+           ┌────────────┐ ┌────────────┐ ┌────────┐
+           │   SQLite   │ │    Groq    │ │Firestore│
+           │  (dev/prod)│ │  API (AI)  │ │ (Chat)  │
+           └────────────┘ └────────────┘ └────────┘
                     │
                     ▼
-           ┌──────────────────────────────────┐
-           │  ERP FlexTotal (adaptador)        │
-           │  D14/D15/D16 + endpoints futuros  │
-           └──────────────────────────────────┘
-
-                    ┌──────────────────────────┐
-                    │  Cloud Functions 2nd Gen  │
-                    │  callGroq (AI)            │
-                    └──────────────────────────┘
+           ┌────────────────────────┐
+           │  ERP FlexTotal (D14)   │
+           │  Produtos + Estoque    │
+           └────────────────────────┘
 ```
 
 ## Stack Detalhada
 
 ### Frontend
-- **Framework:** React 18 + TypeScript
-- **Bundler:** Vite (PWA template)
-- **Service Worker:** Workbox (offline + cache)
-- **UI:** Design System próprio (tokens CSS, Inter + Montserrat)
-- **Gráficos:** Chart.js
-- **Kanban:** @hello-pangea/dnd
-- **Tabelas:** React Table
-- **Ícones:** Lucide
-- **Testes:** Jest (unit) + Cypress (e2e) + axe (a11y)
-- **Deploy:** Firebase Hosting → `dentalimperador.web.app`
+| Item | Tecnologia |
+|---|---|
+| Framework | React 19 + TypeScript |
+| Bundler | Vite 8 (PWA template) |
+| Service Worker | Workbox (vite-plugin-pwa) |
+| UI | Design System próprio (CSS vars, Inter + Montserrat) |
+| Gráficos | Chart.js + react-chartjs-2 |
+| Kanban | @hello-pangea/dnd |
+| Ícones | Lucide React |
+| Notificações | Toast customizado |
+| Deploy | Firebase Hosting → `dentalimperador.web.app` |
 
-### Backend Core (NestJS)
-- **Runtime:** Node.js + TypeScript
-- **ORM:** Prisma ou TypeORM
-- **Banco:** PostgreSQL via Firebase Data Connect
-- **Cache:** Redis (Memorystore ou self-hosted)
-- **Rate limiting:** @nestjs/throttler
-- **Autenticação:** Firebase Admin SDK (verifica tokens JWT)
-- **Eventos:** @nestjs/microservices + Google Cloud Pub/Sub
-- **Adapter ERP:** FlexTotalAdapter (REST para D14/D15/D16)
-- **Testes:** Jest (unit) + Pact (contrato)
+### Backend (NestJS)
+| Item | Tecnologia |
+|---|---|
+| Runtime | Node.js 20 + TypeScript |
+| ORM | Prisma 5.22 |
+| Banco | SQLite (dev/prod — Railway) |
+| Cache | In-memory Map (Redis via REDIS_URL) |
+| Autenticação | Firebase Admin SDK (ADC) |
+| Chat IA | Groq API (LLaMA 3.3 70B) — endpoint `/api/v1/chat` |
+| Validação | class-validator + class-transformer |
+| Rate limiting | @nestjs/throttler |
+| API Key Guard | Header `x-api-key` para rotas B2B |
+| Deploy | Railway (`backend-production-4fc1.up.railway.app`) |
 
-### Firebase / Cloud Functions (2nd Gen)
-- **AI:** `callGroq` — chamada para Groq API (orçamentos, sugestões)
-- **Chat:** Coleção `conversations` no Firestore (onSnapshot)
-- **Notificações:** Firebase Cloud Messaging (push)
-- **Segurança:** `firestore.rules` restritivas por role
+### Infraestrutura e Deploy
+| Item | Tecnologia |
+|---|---|
+| Frontend | Firebase Hosting |
+| Backend | Railway (Railpack, Node 22) |
+| CI/CD | GitHub Actions (Firebase token no GitHub Secrets) |
+| Email | SendGrid (campanhas de retenção) |
+| Monitoramento | Railway Dashboard + Firebase Console |
 
-### Infraestrutura
-- **CI/CD:** GitHub Actions (lint → test → build → deploy)
-- **Staging:** Firebase Hosting (branch preview)
-- **Produção:** Firebase Hosting custom domain
-- **Monitoramento:** Google Cloud Monitoring + Alerting
-- **Billing Alerts:** Configurados no GCP
+## Rotas da API
+
+| Método | Rota | Descrição | Auth |
+|---|---|---|---|
+| GET | `/api/v1/health` | Health check | Público |
+| GET | `/api/v1/products` | Catálogo de produtos | API Key |
+| GET | `/api/v1/orders` | Listar pedidos | API Key |
+| GET/POST/PATCH/DELETE | `/api/v1/customers` | CRUD clientes | API Key |
+| GET | `/api/v1/churn/risks` | Risco de churn | API Key |
+| GET/POST | `/api/v1/churn/campaigns` | Campanhas | API Key |
+| GET/POST | `/api/v1/warehouse/picks` | Picking | API Key |
+| GET | `/api/v1/reports/*` | Relatórios | API Key |
+| GET | `/api/v1/admin/*` | Admin | API Key |
+| GET/PATCH | `/api/v1/notifications` | Notificações | Público |
+| GET/POST | `/api/v1/crm/*` | CRM | API Key / Público |
+| POST | `/api/v1/chat` | Chat IA (Groq) | Público |
+| POST | `/api/v1/crm/auto-create-lead` | Criar lead | Público |
+| GET | `/api/docs` | Swagger UI | API Key |
+
+## Variáveis de Ambiente
+
+| Variável | Local | Descrição |
+|---|---|---|
+| `PORT` | backend/.env | Porta do servidor (3001 dev, 8080 Railway) |
+| `DATABASE_URL` | backend/.env | Conexão SQLite: `file:./dev.db` |
+| `GROQ_API_KEY` | backend/.env + Railway | Chave da API Groq |
+| `SENDGRID_API_KEY` | backend/.env | Chave de email SendGrid |
+| `REDIS_URL` | backend/.env | Redis cache |
+| `FLEXTOTAL_*` | backend/.env | Credenciais ERP |
+| `GOOGLE_APPLICATION_CREDENTIALS` | backend/.env | Firebase Admin |
+| `NODE_ENV` | Railway | `production` |
+| `FIREBASE_TOKEN` | GitHub Secrets | Deploy do Firebase |
+| `VITE_API_URL` | frontend/.env.production | URL do backend em produção |
 
 ## Convenções
 
 | Item | Padrão |
 |---|---|
-| Commits | Conventional Commits (`feat:`, `fix:`, `chore:`, etc.) |
-| Linter | ESLint + Prettier |
-| Branch | `main` (protegida), `develop`, `feature/*`, `fix/*` |
-| Versionamento | SemVer (`v1.0.0`, `v2.0.0`) |
-
-## Variáveis de Ambiente
-
-Todas as secrets estão no `.env` (não versionado). Use `.env.example` como template.
-
-| Variável | Onde usar |
-|---|---|
-| `NEXT_PUBLIC_FIREBASE_*` | Frontend (Vite) |
-| `GROQ_API_KEY` | Cloud Function callGroq |
-| `FLEXTOTAL_*` | NestJS (FlexTotalAdapter) |
-| `DATABASE_URL` | NestJS (Prisma/TypeORM → PostgreSQL) |
-| `REDIS_URL` | NestJS (cache) |
-| `SENDGRID_API_KEY` | NestJS (churn emails) |
-| `TWILIO_*` | NestJS (churn SMS) |
+| Commits | Conventional Commits |
+| Branch | `main` (protegida) |
+| Versionamento | SemVer |

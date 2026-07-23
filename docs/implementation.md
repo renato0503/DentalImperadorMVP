@@ -40,6 +40,8 @@
 | **25** | UX Final & QA | ✅ Concluído | 2026-07-23 | Perfil editável, MeuPainel com gráfico, toasts de feedback, builds limpos |
 | **26** | Chatbot Público (sem login) | ✅ Concluído | 2026-07-23 | ChatWidget anônimo, callGroq sem auth, @Public() no auto-create-lead |
 | **27** | Nova Precificação | ✅ Concluído | 2026-07-23 | preco_promocional no schema, Orcamento com 2 preços, Triagem com pergunta estudante, prompt Groq com regras de desconto |
+| **28-29** | Eliminar Cloud Functions + Railway Deploy | ✅ Concluído | 2026-07-23 | Cloud Function deletada, ChatModule no NestJS, Railway deploy, Firebase Hosting + CSP |
+| **30** | Correções Pós-Deploy | 🔄 Em andamento | 2026-07-23 | Railway db seed + PWA manifest + meta tags |
 
 **Legenda:** ✅ Concluído | 🔄 Em andamento | ⏳ Pendente | ❌ Bloqueado
 
@@ -47,38 +49,32 @@
 
 | Item | Status | Detalhes |
 |---|---|---|
-| Firebase Authentication | ✅ Produção | Login email/senha ativo |
-| Firebase Firestore | ✅ Produção | Coleções: users, conversations, messages |
-| Firebase Hosting | ✅ Produção | Domínio: `dentalimperador.web.app` |
-| Cloud Function callGroq | ✅ Produção | Groq API (LLaMA 3.3 70B) funcional |
-| Frontend React + Vite + PWA | ✅ Feito | Build limpo, PWA ativo, proxy API configurado |
-| Backend NestJS + Prisma | ✅ Feito | 12 services usando Prisma com SQLite (dev) |
-| Firebase Admin | ✅ Feito | ADC via gcloud auth |
-| CI/CD Firebase Hosting | ✅ Configurado | FIREBASE_TOKEN no GitHub Secrets |
-| GROQ_API_KEY | ✅ Configurada | Firebase Secret Manager |
-| DATABASE_URL | ✅ Configurado | SQLite (dev) / PostgreSQL (prod) |
-| Churn Module + SendGrid | ✅ Feito | API + Dashboard + Email configurado |
-| Warehouse Picking | ✅ Feito | API REST + EventEmitter + Monitor |
-| Reports | ✅ Feito | 4 abas, CSV export, filtros período |
+| Frontend PWA | ✅ Produção | Firebase Hosting — https://dentalimperador.web.app |
+| Backend NestJS | ✅ Produção | Railway — https://backend-production-4fc1.up.railway.app |
+| Firebase Auth | ✅ Produção | Login email/senha |
+| Firebase Firestore | ✅ Produção | Conversas do chat |
+| Chat IA (Groq) | ✅ Produção | LLaMA 3.3 70B via `/api/v1/chat` |
+| SendGrid (Email) | ✅ Configurado | Campanhas de retenção |
+| CI/CD | ✅ Configurado | FIREBASE_TOKEN no GitHub Secrets |
 | Admin Dashboard | ✅ Feito | 6 KPIs, gráficos, gestão de usuários |
-| CRM Kanban + Perfil 360° | ✅ Feito | 6 colunas, clusters, timeline, notas |
-| Notificações | ✅ Feito | NotificationBell, 6 regras de alerta |
-| Chatbot com IA | ✅ Feito | Triagem + Groq + Criação automática de lead |
+| CRM + Perfil 360° | ✅ Feito | 6 colunas Kanban, clusters, timeline |
+| Orçamento | ✅ Feito | Preço normal + promocional + lista acadêmica |
+| Chatbot Público | ✅ Feito | Triagem → IA → Lead (sem login) |
 | API B2B | ✅ Feito | Swagger UI, ApiKey guard, OpenAPI 3.0 |
-| Integração ERP (parcial) | ✅ Feito | D14/D15/D16. Aguardando clientes/pedidos |
+| ERP FlexTotal | ✅ Parcial | D14/D15/D16. Aguardando clientes/pedidos |
 
-### Arquitetura de Referência (Decisão Estratégica)
+### Arquitetura de Referência (Stack Atual)
 
 | Componente | Tecnologia |
 |---|---|
-| **Frontend** | React 18 + TypeScript + Vite (PWA) |
-| **Backend Core** | NestJS + Prisma + SQLite (dev) / PostgreSQL (prod) |
-| **Tempo Real & Chat** | Firebase Firestore (conversas de chat, sessões) |
-| **Eventos** | EventEmitter (NestJS) — preparado para Pub/Sub |
-| **AI** | Groq API (LLaMA 3.3 70B) via Cloud Functions 2nd Gen |
+| **Frontend** | React 18 + TypeScript + Vite (PWA) — Firebase Hosting |
+| **Backend** | NestJS + Prisma + SQLite — Railway |
+| **Chat/Tempo Real** | Firebase Firestore (conversas do chat) |
+| **AI** | Groq API (LLaMA 3.3 70B) via endpoint `/api/v1/chat` |
 | **Cache** | CacheService in-memory (Redis via REDIS_URL) |
 | **Email** | SendGrid (campanhas de retenção) |
-| **Auth** | Firebase Auth + Firebase Admin SDK |
+| **Auth** | Firebase Auth + Firebase Admin SDK (ADC) |
+| **Deploy** | Firebase Hosting + Railway + GitHub Actions |
 
 ### Firebase Project
 
@@ -512,7 +508,20 @@ Após concluir todo o código da Fase 2, a Fase 3 conectou tudo ao mundo real: b
 
 ---
 
-### 📋 Roadmap Final (Sprints 19-25)
+### Sprint 30 — Correções Pós-Deploy (1 dia)
+
+**Objetivo:** Corrigir problemas identificados após o deploy em produção no Railway e Firebase Hosting.
+
+| Área | Tarefas | Resultado |
+|---|---|---|
+| **Railway — Banco de dados** | • Adicionar `npx prisma db push && npx prisma db seed` no start command<br>• Necessário porque Railway cria container limpo sem migrations | Tabelas criadas e seed executado no Railway |
+| **Railway — Variáveis** | • Verificar se `GROQ_API_KEY` está setada nas variáveis do Railway (já foi feita) | Chat IA funcional no Railway |
+| **PWA Manifest** | • Verificar erro `Manifest: Line 1, column 1, Syntax error` no console<br>• Provável conflito entre `manifest.webmanifest` gerado pelo Vite e o `manifest.json` esperado pelo Firebase | PWA instalável sem erro |
+| **Meta tags** | • Adicionar `<meta name="mobile-web-app-capable" content="yes">` no `index.html`<br>• O Safari emite warning sobre `apple-mobile-web-app-capable` estar deprecado | Sem warnings no console |
+| **auto-create-lead 500** | • Após aplicar `prisma db push` no Railway, o 500 será resolvido (causa: tabelas não existiam) | Lead cria sem erro no Railway |
+| **QA** | • Testar fluxo: chatbot → triagem → lead → Kanban no Railway<br>• Testar PWA install no Chrome<br>• Verificar console sem erros | Produção 100% funcional |
+
+**Critério de aceitação:** Railway com banco populado. PWA sem erros de manifest. Meta tags sem warnings. Lead criado sem 500. Console limpo.
 
 | Sprint | Duração | Foco | Status |
 |---|---|---|---|
@@ -564,8 +573,9 @@ Após concluir todo o código da Fase 2, a Fase 3 conectou tudo ao mundo real: b
 | 27 | 2 dias | Nova Precificação (promocional, triagem estudante, prompt Groq) | ✅ |
 | 28 | 1 dia | Migrar Cloud Function 2nd Gen → 1st Gen (reduzir custos) | ✅ |
 | 29 | 1 dia | Eliminar Cloud Function — Groq no backend NestJS | ✅ |
+| 30 | 1 dia | Correções pós-deploy (Railway db, PWA, meta tags) | 🔄 |
 
-> **Status:** 29 sprints concluídas 🎉 — Plataforma sem custos de Cloud Functions
+> **Status:** 29 sprints concluídas, 1 sprint em andamento (Sprint 30 — Correções pós-deploy)
 
 ---
 
