@@ -5,6 +5,7 @@ import {
   LineElement, PointElement, Filler,
 } from "chart.js";
 import { showToast } from "../../lib/toast";
+import { useSyncStatus, formatSyncTime } from "../../hooks/useSync";
 
 Chart.register(
   BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend,
@@ -42,6 +43,7 @@ export function AdminDashboard() {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const { statuses, fetchLastSync } = useSyncStatus();
   const barRef = useRef<HTMLCanvasElement>(null);
   const doughnutRef = useRef<HTMLCanvasElement>(null);
   const lineRef = useRef<HTMLCanvasElement>(null);
@@ -65,6 +67,13 @@ export function AdminDashboard() {
   };
 
   useEffect(() => { fetchData(); }, []);
+
+  useEffect(() => {
+    const entities = ["products", "clients", "stock", "tech-sheets"];
+    entities.forEach(fetchLastSync);
+    const interval = setInterval(() => entities.forEach(fetchLastSync), 30000);
+    return () => clearInterval(interval);
+  }, [fetchLastSync]);
 
   useEffect(() => {
     if (!metrics || !barRef.current) return;
@@ -194,6 +203,32 @@ export function AdminDashboard() {
             <div className="sla-value">98%</div>
             <div className="sla-label">Uptime</div>
           </div>
+        </div>
+      </div>
+
+      <div className="admin-section">
+        <h2>Sincronia ERP</h2>
+        <div className="sla-grid">
+          {[
+            { entity: "products", label: "Produtos" },
+            { entity: "clients", label: "Clientes" },
+            { entity: "stock", label: "Estoque" },
+            { entity: "tech-sheets", label: "Fichas Técnicas" },
+          ].map(({ entity, label }) => {
+            const entry = statuses[entity];
+            const ok = entry?.status === "completed" && entry?.result?.success;
+            return (
+              <div key={entity} className="card sla-card">
+                <div className="sla-value" style={{ fontSize: 12, color: ok ? "#00A650" : "#9CA3AF" }}>
+                  {ok ? "✅" : "⏳"}
+                </div>
+                <div className="sla-label">{label}</div>
+                <div style={{ fontSize: 11, color: "#6B7280", marginTop: 4 }}>
+                  {entry ? `${formatSyncTime(entry.finishedAt)} — ${entry.result?.recordsProcessed.toLocaleString()} itens` : "Nunca"}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
