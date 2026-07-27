@@ -36,7 +36,7 @@ export function CustomerTable() {
         setCustomers(Array.isArray(data) ? data : []);
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch((e) => { console.error("Erro customers:", e); setLoading(false); });
   }, [filtroUf, filtroStatus]);
 
   const filtered = customers.filter((c) =>

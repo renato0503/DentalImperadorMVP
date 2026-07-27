@@ -194,6 +194,5 @@ model StockBatch {
   atualizado_em      DateTime @default(now())
   product            Product  @relation(fields: [sku], references: [sku])
 
-  @@unique([sku, filial, lote])
-  @@index([sku])
+  @@unique([sku])
 }

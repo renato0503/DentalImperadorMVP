@@ -57,6 +57,7 @@ export function AdminDashboard() {
       setUsers(Array.isArray(u) ? u : []);
       setActivities(Array.isArray(a) ? a : []);
     } catch (e) {
+      console.error("Erro admin dashboard:", e);
       showToast("Erro ao carregar dados do admin");
     } finally {
       setLoading(false);
@@ -120,13 +121,14 @@ export function AdminDashboard() {
 
   const changeRole = async (uid: string, papel: string) => {
     try {
-      await fetch(`/api/v1/admin/users/${uid}/role`, {
+      const res = await fetch(`/api/v1/admin/users/${uid}/role`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ papel }),
       });
+      if (!res.ok) console.error("Erro changeRole:", res.status, await res.text());
       fetchData();
-    } catch (e) { console.error(e); }
+    } catch (e) { console.error("changeRole error:", e); }
   };
 
   if (loading) return <p>Carregando painel admin...</p>;
