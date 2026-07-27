@@ -16,14 +16,8 @@ export function MeuPainel() {
 
   useEffect(() => {
     if (!userData) return;
-    Promise.all([
-      fetch(`/api/v1/orders?cliente_uid=${userData.uid}`).then((r) => r.json()),
-      fetch(`/api/v1/admin/metrics`).then((r) => r.json()),
-    ])
-      .then(([o, m]) => {
-        setOrders(Array.isArray(o) ? o : []);
-        setMetrics(m);
-      })
+    fetch(`/api/v1/orders?cliente_uid=${userData.uid}`).then((r) => r.json())
+      .then((o) => setOrders(Array.isArray(o) ? o : []))
       .catch(() => {});
   }, [userData]);
 

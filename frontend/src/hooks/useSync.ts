@@ -1,5 +1,4 @@
 import { useState, useCallback } from "react";
-import { showToast } from "../lib/toast";
 
 export interface SyncLogEntry {
   id: string;
