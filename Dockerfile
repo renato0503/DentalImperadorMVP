@@ -21,4 +21,6 @@ ENV PORT=8080
 
 EXPOSE 8080
 
+RUN npx prisma db push --accept-data-loss --skip-generate
+
 CMD ["node", "dist/src/main.js"]
