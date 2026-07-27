@@ -4,18 +4,17 @@ import { AuthProvider } from "./lib/auth";
 import { AppShell } from "./components/layout/AppShell";
 import { GestaoLayout } from "./components/layout/GestaoLayout";
 import { OperatorLayout } from "./components/layout/OperatorLayout";
+import { ClienteLayout } from "./components/layout/ClienteLayout";
 import { InstallPrompt, OfflineNotice } from "./components/pwa/InstallPrompt";
 import { ToastContainer } from "./components/ToastContainer";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { HomePage } from "./pages/Home";
-import { LoginPage } from "./pages/Login";
 
+const LoginPage = lazy(() => import("./pages/Login").then((m) => ({ default: m.LoginPage })));
 const ChatbotPage = lazy(() => import("./pages/Chatbot").then((m) => ({ default: m.ChatbotPage })));
-const DashboardPage = lazy(() => import("./pages/Dashboard").then((m) => ({ default: m.DashboardPage })));
 const OrcamentoPage = lazy(() => import("./pages/Orcamento").then((m) => ({ default: m.OrcamentoPage })));
 const PedidoPage = lazy(() => import("./pages/Pedido").then((m) => ({ default: m.PedidoPage })));
 const CRMPage = lazy(() => import("./pages/CRM").then((m) => ({ default: m.CRMPage })));
-
 const ChurnDashboard = lazy(() => import("./pages/churn/ChurnDashboard").then((m) => ({ default: m.ChurnDashboard })));
 const CampaignsPage = lazy(() => import("./pages/churn/Campaigns").then((m) => ({ default: m.CampaignsPage })));
 const PickingMonitor = lazy(() => import("./pages/warehouse/PickingMonitor").then((m) => ({ default: m.PickingMonitor })));
@@ -25,9 +24,13 @@ const SyncPanel = lazy(() => import("./pages/admin/SyncPanel").then((m) => ({ de
 const ProductManager = lazy(() => import("./pages/admin/ProductManager").then((m) => ({ default: m.ProductManager })));
 const CustomerTable = lazy(() => import("./pages/admin/CustomerTable").then((m) => ({ default: m.CustomerTable })));
 const ManagerDashboard = lazy(() => import("./pages/manager/ManagerDashboard").then((m) => ({ default: m.ManagerDashboard })));
-const MeuPainel = lazy(() => import("./pages/MeuPainel").then((m) => ({ default: m.MeuPainel })));
 const SalesMetricsPage = lazy(() => import("./pages/SalesMetrics").then((m) => ({ default: m.SalesMetricsPage })));
+const DashboardPage = lazy(() => import("./pages/Dashboard").then((m) => ({ default: m.DashboardPage })));
 const PerfilPage = lazy(() => import("./pages/Perfil").then((m) => ({ default: m.PerfilPage })));
+const ClientePainel = lazy(() => import("./pages/cliente/ClientePainel").then((m) => ({ default: m.ClientePainel })));
+const ClientePedidos = lazy(() => import("./pages/cliente/ClientePedidos").then((m) => ({ default: m.ClientePedidos })));
+const ClienteOrcamentos = lazy(() => import("./pages/cliente/ClienteOrcamentos").then((m) => ({ default: m.ClienteOrcamentos })));
+const ClienteChat = lazy(() => import("./pages/cliente/ClienteChat").then((m) => ({ default: m.ClienteChat })));
 
 function Loading() {
   return <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "60vh", color: "#6B7280" }}>Carregando...</div>;
@@ -41,8 +44,6 @@ export default function App() {
         <OfflineNotice />
         <ToastContainer />
         <Routes>
-          <Route path="/login" element={<LoginPage />} />
-
           {/* Gestão Unificada (Admin + Manager) */}
           <Route path="/gestao" element={
             <ProtectedRoute resource="gestao">
@@ -74,18 +75,32 @@ export default function App() {
             <Route path="perfil" element={<PerfilPage />} />
           </Route>
 
-          {/* Experiência do Cliente (AppShell) */}
+          {/* Cliente Logado */}
+          <Route path="/cliente" element={
+            <ProtectedRoute resource="chatbot">
+              <ClienteLayout />
+            </ProtectedRoute>
+          }>
+            <Route index element={<Navigate to="/cliente/painel" replace />} />
+            <Route path="painel" element={<ClientePainel />} />
+            <Route path="pedidos" element={<ClientePedidos />} />
+            <Route path="orcamentos" element={<ClienteOrcamentos />} />
+            <Route path="chat" element={<ClienteChat />} />
+            <Route path="perfil" element={<PerfilPage />} />
+          </Route>
+
+          {/* Experiência Pública + Redirecionamento de Login */}
           <Route path="*" element={
             <AppShell>
               <Suspense fallback={<Loading />}>
                 <Routes>
                   <Route path="/" element={<HomePage />} />
+                  <Route path="/login" element={<LoginPage />} />
                   <Route path="/chatbot" element={<ChatbotPage />} />
                   <Route path="/orcamento" element={<OrcamentoPage />} />
                   <Route path="/pedido" element={<PedidoPage />} />
-                  <Route path="/dashboard" element={<ProtectedRoute resource="gestao"><DashboardPage /></ProtectedRoute>} />
-                  <Route path="/meu-painel" element={<MeuPainel />} />
-                  <Route path="/perfil" element={<PerfilPage />} />
+                  <Route path="/meu-painel" element={<Navigate to="/cliente/painel" replace />} />
+                  <Route path="/perfil" element={<Navigate to="/cliente/perfil" replace />} />
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
               </Suspense>
