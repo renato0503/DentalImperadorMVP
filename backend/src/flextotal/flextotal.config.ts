@@ -18,8 +18,4 @@ export const FLEXTOTAL_CONFIG = {
     retryAttempts: 3,
     retryDelayMs: 5000,
   },
-  firebase: {
-    storageBucket: process.env.FIREBASE_STORAGE_BUCKET ?? "dentalimperador-d2529.firebasestorage.app",
-    imagesPath: "produtos",
-  },
 };

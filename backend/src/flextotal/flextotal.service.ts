@@ -4,15 +4,8 @@ import { firstValueFrom } from "rxjs";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { PrismaService } from "../prisma/prisma.service";
 import { CacheService } from "../cache/cache.service";
-import { FirebaseService } from "../firebase/firebase.service";
 import { FLEXTOTAL_CONFIG } from "./flextotal.config";
-import {
-  buildAuthHeaders,
-  hasMorePages,
-  fetchImageFromUrl,
-  uploadBufferToStorage,
-  sanitizeFileName,
-} from "./flextotal.utils";
+import { buildAuthHeaders, hasMorePages } from "./flextotal.utils";
 import type {
   FlexTotalClientesRequest,
   FlexTotalClientesResponse,
@@ -42,7 +35,6 @@ export class FlexTotalService {
     private readonly httpService: HttpService,
     private readonly prisma: PrismaService,
     private readonly cache: CacheService,
-    private readonly firebase: FirebaseService,
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
@@ -136,10 +128,6 @@ export class FlexTotalService {
             const upserted = await this.upsertProduct(p);
             if (upserted) result.recordsCreated++;
             else result.recordsUpdated++;
-
-            if (p.imagem_url) {
-              await this.processProductImageFromUrl(p.sku.toString(), p.imagem_url);
-            }
           } catch (err) {
             result.errors.push(`Produto ${p.sku}: ${(err as Error).message}`);
           }
@@ -377,51 +365,23 @@ export class FlexTotalService {
 
     const reservado = data.qt_atual - data.qt_disponivel;
 
-    const stockData = {
-      sku,
-      quantidade: data.qt_atual,
-      reservado: reservado > 0 ? reservado : 0,
-      disponivel: data.qt_disponivel,
-    };
-
-    const existing = await this.prisma.stockBatch.findUnique({
-      where: { sku_filial_lote: { sku, filial: 0, lote: "" } },
+    await this.prisma.stockBatch.upsert({
+      where: { sku },
+      update: {
+        quantidade: data.qt_atual,
+        reservado: reservado > 0 ? reservado : 0,
+        disponivel: data.qt_disponivel,
+        atualizado_em: new Date(),
+      },
+      create: {
+        sku,
+        quantidade: data.qt_atual,
+        reservado: reservado > 0 ? reservado : 0,
+        disponivel: data.qt_disponivel,
+      },
     });
 
-    if (existing) {
-      await this.prisma.stockBatch.update({
-        where: { id: existing.id },
-        data: { ...stockData, atualizado_em: new Date() },
-      });
-      return false;
-    }
-
-    await this.prisma.stockBatch.create({ data: stockData });
     return true;
   }
-
-  private async processProductImageFromUrl(sku: string, imageUrl: string) {
-    try {
-      const buffer = await fetchImageFromUrl(this.httpService, imageUrl);
-      if (!buffer) return;
-
-      const fileName = sanitizeFileName(sku, 0);
-      const publicUrl = await uploadBufferToStorage(buffer, fileName);
-
-      if (publicUrl) {
-        const existing = await this.prisma.product.findUnique({ where: { sku } });
-        if (existing) {
-          await this.prisma.productImage.upsert({
-            where: { sku_order: { sku, order: 0 } },
-            update: { url: publicUrl, isPrimary: true },
-            create: { sku, url: publicUrl, isPrimary: true, order: 0 },
-          });
-        }
-      }
-    } catch (err) {
-      this.logger.error(`processProductImageFromUrl(${sku}) error: ${(err as Error).message}`);
-    }
-  }
-
 
 }

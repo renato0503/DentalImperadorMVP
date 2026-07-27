@@ -1,4 +1,5 @@
 import { useAuth, type UserRole } from "../../lib/auth";
+import { ROLE_HOME } from "../../lib/auth";
 
 interface SidebarLink {
   href: string; label: string; icon: string; roles?: UserRole[];
@@ -8,35 +9,15 @@ interface SidebarSection {
   title?: string; links: SidebarLink[];
 }
 
-const CLIENTE_LINKS: SidebarSection[] = [
+const LINKS: SidebarSection[] = [
   { links: [
-    { href: "/meu-painel", label: "Meu Painel", icon: "home", roles: ["admin", "manager", "operator", "cliente"] },
-    { href: "/chatbot", label: "Chatbot", icon: "message-circle", roles: ["admin", "manager", "operator", "cliente"] },
-    { href: "/orcamento", label: "Orçamento", icon: "file-text", roles: ["admin", "manager", "operator", "cliente"] },
-    { href: "/pedido", label: "Status", icon: "package", roles: ["admin", "manager", "operator", "cliente"] },
+    { href: "/chatbot", label: "Chatbot", icon: "message-circle" },
+    { href: "/orcamento", label: "Orçamento", icon: "file-text" },
+    { href: "/pedido", label: "Status Pedido", icon: "package" },
   ]},
-  { title: "CONTA", links: [
-    { href: "/perfil", label: "Perfil", icon: "users", roles: ["admin", "manager", "operator", "cliente"] },
-  ]},
-];
-
-const STAFF_LINKS: SidebarSection[] = [
-  { title: "DASHBOARDS", links: [
-    { href: "/admin", label: "Admin", icon: "shield", roles: ["admin"] },
-    { href: "/dashboard", label: "Comercial", icon: "bar-chart", roles: ["admin", "manager", "operator"] },
-    { href: "/relatorios", label: "Relatórios", icon: "file-text", roles: ["admin", "manager", "operator"] },
-    { href: "/metricas-vendas", label: "Métricas Vendas", icon: "bar-chart", roles: ["admin", "manager"] },
-  ]},
-  { title: "GESTÃO", links: [
-    { href: "/crm", label: "CRM", icon: "users", roles: ["admin", "manager", "operator"] },
-    { href: "/churn", label: "Churn", icon: "activity", roles: ["admin", "manager"] },
-    { href: "/campanhas", label: "Campanhas", icon: "send", roles: ["admin", "manager"] },
-  ]},
-  { title: "OPERAÇÕES", links: [
-    { href: "/picking", label: "Picking", icon: "box", roles: ["admin", "manager", "operator"] },
-  ]},
-  { title: "SISTEMA", links: [
-    { href: "/perfil", label: "Perfil", icon: "users", roles: ["admin", "manager", "operator"] },
+  { title: "MINHA CONTA", links: [
+    { href: "/meu-painel", label: "Meu Painel", icon: "home", roles: ["cliente"] },
+    { href: "/perfil", label: "Perfil", icon: "users" },
   ]},
 ];
 
@@ -45,7 +26,16 @@ export function Sidebar() {
   const path = window.location.pathname;
   const role: UserRole = userData?.papel || "cliente";
 
-  const sections = role === "cliente" ? CLIENTE_LINKS : STAFF_LINKS;
+  const sections = LINKS.map((s) => ({
+    ...s,
+    links: s.links
+      .filter((l) => !l.roles || l.roles.includes(role))
+      .concat(
+        role !== "cliente" && s.title === "MINHA CONTA"
+          ? [{ href: ROLE_HOME[role], label: "Painel Admin", icon: "shield" as const }]
+          : []
+      ),
+  }));
 
   const isActive = (href: string) => {
     if (path === href) return true;
@@ -59,18 +49,16 @@ export function Sidebar() {
         {sections.map((section, i) => (
           <div key={i}>
             {section.title && <div className="sidebar-section-title">{section.title}</div>}
-            {section.links
-              .filter((l) => !l.roles || l.roles.includes(role))
-              .map((link) => (
-                <a
-                  key={link.href}
-                  href={link.href}
-                  className={`sidebar-link${isActive(link.href) ? " active" : ""}`}
-                  data-icon={link.icon}
-                >
-                  {link.label}
-                </a>
-              ))}
+            {section.links.map((link) => (
+              <a
+                key={link.href}
+                href={link.href}
+                className={`sidebar-link${isActive(link.href) ? " active" : ""}`}
+                data-icon={link.icon}
+              >
+                {link.label}
+              </a>
+            ))}
           </div>
         ))}
       </nav>

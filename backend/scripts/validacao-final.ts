@@ -164,11 +164,11 @@ async function validarD15(): Promise<void> {
     }
 
     await prisma.stockBatch.upsert({
-      where: { sku_filial_lote: { sku, filial: 0, lote: "" } },
+      where: { sku },
       update: { quantidade: qtd, disponivel: disp, atualizado_em: new Date() },
       create: { sku, quantidade: qtd, disponivel: disp },
     });
-    const saved = await prisma.stockBatch.findUnique({ where: { sku_filial_lote: { sku, filial: 0, lote: "" } } });
+    const saved = await prisma.stockBatch.findUnique({ where: { sku } });
     r.persistenciaOk = saved !== null;
     if (!r.persistenciaOk) r.erros.push("Falha ao persistir estoque no test.db");
   } catch (err) {

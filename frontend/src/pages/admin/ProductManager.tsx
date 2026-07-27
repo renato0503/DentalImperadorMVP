@@ -33,7 +33,7 @@ export function ProductManager() {
         setProducts(Array.isArray(data) ? data : []);
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch((e) => { console.error("Erro products:", e); setLoading(false); });
   }, [categoria]);
 
   const filtered = products.filter((p) =>
