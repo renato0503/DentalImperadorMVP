@@ -15,6 +15,8 @@ import { AdminModule } from "./admin/admin.module";
 import { CrmModule } from "./crm/crm.module";
 import { NotificationsModule } from "./notifications/notifications.module";
 import { ChatModule } from "./chat/chat.module";
+import { AuthModule } from "./auth/auth.module";
+import { GestaoModule } from "./gestao/gestao.module";
 import { ApiKeyModule } from "./api-key/api-key.module";
 import { FlexTotalModule } from "./flextotal/flextotal.module";
 
@@ -33,6 +35,8 @@ import { FlexTotalModule } from "./flextotal/flextotal.module";
     ReportsModule,
     HealthModule,
     AdminModule,
+    AuthModule,
+    GestaoModule,
     ApiKeyModule,
     CrmModule,
     NotificationsModule,

@@ -75,7 +75,7 @@ function toCustomerDetail(user: any) {
     email: user.email,
     telefone: user.telefone || "",
     segmento: user.segmento || "",
-    status: user.status || user.papel,
+    status: user.status || user.role,
     origem: user.origem || "",
     total_gasto: user.total_gasto || 0,
     ultima_compra: user.ultima_compra
@@ -141,7 +141,7 @@ export class CrmService {
     let id = 0;
 
     for (const c of customers) {
-      if (!c.vendedor_uid && c.papel !== "admin") {
+      if (!c.vendedor_uid && c.role !== "GESTOR") {
         alerts.push({
           id: String(++id),
           cliente_id: c.id,
@@ -293,7 +293,7 @@ export class CrmService {
         receita: 0,
       };
       v.leads++;
-      if (c.papel === "cliente") v.clientes++;
+      if (c.role === "CLIENT") v.clientes++;
       v.receita += c.total_gasto || 0;
       vendors.set(c.vendedor_uid, v);
     }
@@ -312,7 +312,7 @@ export class CrmService {
 
     return etapas.map((etapa) => {
       const filtered = users.filter(
-        (u) => (u as any).status === etapa || u.papel === etapa
+        (u) => u.status === etapa
       );
       return {
         etapa,
@@ -381,7 +381,7 @@ export class CrmService {
         nome: data.nome,
         email: data.email,
         telefone: data.telefone,
-        papel: "cliente",
+        role: "CLIENT",
         origem: data.origem || "Chatbot",
         vendedor_uid: vendor.uid,
         vendedor_nome: vendor.nome,
@@ -446,7 +446,7 @@ export class CrmService {
         nome: data.nome || `Contato WhatsApp ${data.numero}`,
         email: "",
         telefone: data.numero,
-        papel: "cliente",
+        role: "CLIENT",
         origem: "WhatsApp",
         vendedor_uid: vendor.uid,
         vendedor_nome: vendor.nome,

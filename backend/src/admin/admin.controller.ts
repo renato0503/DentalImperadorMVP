@@ -18,9 +18,9 @@ export class AdminController {
   @Patch("users/:uid/role")
   async updateUserRole(
     @Param("uid") uid: string,
-    @Body("papel") papel: string
+    @Body("role") role: string
   ): Promise<AdminUser> {
-    return this.adminService.updateUserRole(uid, papel);
+    return this.adminService.updateUserRole(uid, role);
   }
 
   @Get("activity")
