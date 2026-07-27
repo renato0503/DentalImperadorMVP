@@ -1,42 +1,55 @@
 import { Outlet, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../lib/auth";
-import { usePermission } from "../../lib/permissions";
+import { usePermission, type Resource } from "../../lib/permissions";
 import { NotificationBell } from "../notifications/NotificationBell";
 
-const MODULES = [
+interface ModuleLink {
+  to: string;
+  label: string;
+  icon: string;
+  resource: Resource;
+  exact?: boolean;
+}
+
+interface Module {
+  section: string;
+  links: ModuleLink[];
+}
+
+const MODULES: Module[] = [
   {
     section: "Dashboard",
     links: [
-      { to: "/gestao", label: "Dashboard Executivo", icon: "📊", resource: "gestao" as const, exact: true },
+      { to: "/gestao", label: "Dashboard Executivo", icon: "📊", resource: "gestao", exact: true },
     ],
   },
   {
     section: "Gestão",
     links: [
-      { to: "/gestao/crm", label: "CRM & Funil", icon: "👥", resource: "gestao.crm" as const },
-      { to: "/gestao/equipe", label: "Equipe & Metas", icon: "🏆", resource: "gestao.equipe" as const },
-      { to: "/gestao/churn", label: "Retenção", icon: "⚠️", resource: "gestao.churn" as const },
+      { to: "/gestao/crm", label: "CRM & Funil", icon: "👥", resource: "gestao.crm" },
+      { to: "/gestao/equipe", label: "Equipe & Metas", icon: "🏆", resource: "gestao.equipe" },
+      { to: "/gestao/churn", label: "Retenção", icon: "⚠️", resource: "gestao.churn" },
     ],
   },
   {
     section: "Relatórios",
     links: [
-      { to: "/gestao/relatorios", label: "Relatórios", icon: "📄", resource: "gestao.relatorios" as const },
-      { to: "/gestao/metricas", label: "Métricas de Vendas", icon: "📈", resource: "gestao.relatorios" as const },
+      { to: "/gestao/relatorios", label: "Relatórios", icon: "📄", resource: "gestao.relatorios" },
+      { to: "/gestao/metricas", label: "Métricas de Vendas", icon: "📈", resource: "gestao.relatorios" },
     ],
   },
   {
     section: "Operações",
     links: [
-      { to: "/gestao/produtos", label: "Produtos", icon: "📦", resource: "gestao" as const },
-      { to: "/gestao/clientes", label: "Clientes", icon: "👥", resource: "gestao" as const },
+      { to: "/gestao/produtos", label: "Produtos", icon: "📦", resource: "gestao" },
+      { to: "/gestao/clientes", label: "Clientes", icon: "👥", resource: "gestao" },
     ],
   },
   {
     section: "Sistema",
     links: [
-      { to: "/gestao/sync", label: "Sincronia ERP", icon: "🔄", resource: "gestao.config" as const },
-      { to: "/gestao/usuarios", label: "Usuários", icon: "🔐", resource: "gestao.config" as const },
+      { to: "/gestao/sync", label: "Sincronia ERP", icon: "🔄", resource: "gestao.config" },
+      { to: "/gestao/usuarios", label: "Usuários", icon: "🔐", resource: "gestao.config" },
     ],
   },
 ];

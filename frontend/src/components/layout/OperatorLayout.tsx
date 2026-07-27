@@ -1,6 +1,5 @@
 import { Outlet, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../lib/auth";
-import { usePermission } from "../../lib/permissions";
 import { NotificationBell } from "../notifications/NotificationBell";
 
 const OPERATOR_LINKS = [

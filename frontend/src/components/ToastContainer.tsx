@@ -12,7 +12,7 @@ export function ToastContainer() {
         setToasts((prev) => prev.filter((t) => t.id !== id));
       }, 4000);
     });
-    return () => unsub();
+    return () => { unsub(); };
   }, []);
 
   if (toasts.length === 0) return null;

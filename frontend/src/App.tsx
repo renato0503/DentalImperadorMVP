@@ -15,7 +15,7 @@ const DashboardPage = lazy(() => import("./pages/Dashboard").then((m) => ({ defa
 const OrcamentoPage = lazy(() => import("./pages/Orcamento").then((m) => ({ default: m.OrcamentoPage })));
 const PedidoPage = lazy(() => import("./pages/Pedido").then((m) => ({ default: m.PedidoPage })));
 const CRMPage = lazy(() => import("./pages/CRM").then((m) => ({ default: m.CRMPage })));
-const CustomerProfile = lazy(() => import("./pages/crm/CustomerProfile").then((m) => ({ default: m.CustomerProfile })));
+
 const ChurnDashboard = lazy(() => import("./pages/churn/ChurnDashboard").then((m) => ({ default: m.ChurnDashboard })));
 const CampaignsPage = lazy(() => import("./pages/churn/Campaigns").then((m) => ({ default: m.CampaignsPage })));
 const PickingMonitor = lazy(() => import("./pages/warehouse/PickingMonitor").then((m) => ({ default: m.PickingMonitor })));
