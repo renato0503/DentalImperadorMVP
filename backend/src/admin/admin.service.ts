@@ -20,7 +20,7 @@ export interface AdminUser {
   uid: string;
   email: string;
   nome: string;
-  papel: string;
+  role: string;
   ultimo_acesso?: string | null;
   ativo: boolean;
 }
@@ -72,12 +72,12 @@ export class AdminService {
     });
 
     const totalLeads = await this.prisma.user.count({
-      where: { papel: "cliente" },
+      where: { role: "CLIENT" },
     });
 
     const leadsNovos = await this.prisma.user.count({
       where: {
-        papel: "cliente",
+        role: "CLIENT",
         criado_em: {
           gte: new Date(now.getFullYear(), now.getMonth(), 1),
         },
@@ -110,24 +110,24 @@ export class AdminService {
     const users = await this.prisma.user.findMany({
       orderBy: { nome: "asc" },
     });
-    return users.map((u) => ({
+      return users.map((u) => ({
       uid: u.uid,
       email: u.email,
       nome: u.nome,
-      papel: u.papel,
+      role: u.role,
       ultimo_acesso: null,
       ativo: u.ativo,
     }));
   }
 
-  async updateUserRole(uid: string, papel: string) {
+  async updateUserRole(uid: string, role: string) {
     const user = await this.prisma.user.findUnique({ where: { uid } });
     if (!user) throw new Error(`Usuário ${uid} não encontrado`);
 
     return this.prisma.user.update({
       where: { uid },
-      data: { papel },
-      select: { uid: true, email: true, nome: true, papel: true, ativo: true },
+      data: { role },
+      select: { uid: true, email: true, nome: true, role: true, ativo: true },
     });
   }
 

@@ -278,7 +278,7 @@ async function validarD17(): Promise<void> {
         uid,
         nome: String(c.nome_razao_social ?? ""),
         email: String(c.email ?? `cliente-${c.id_cliente}@flextotal.local`),
-        papel: "cliente",
+        role: "CLIENT",
         cpf_cnpj: String(c.cpf_cnpj ?? ""),
         origem: "ERP FlexTotal",
       },

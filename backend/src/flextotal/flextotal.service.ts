@@ -412,7 +412,7 @@ export class FlexTotalService {
       uid,
       nome: data.nome_razao_social,
       email: data.email || data.email_nfe || `cliente-${data.id_cliente}@flextotal.local`,
-      papel: "cliente",
+      role: "CLIENT",
       status: data.ativo ? "ativo" : "inativo",
       cpf_cnpj: data.cpf_cnpj || null,
       telefone: data.telefone || data.whatsapp || data.celular || null,

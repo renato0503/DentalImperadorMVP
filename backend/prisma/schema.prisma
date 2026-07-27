@@ -12,7 +12,10 @@ model User {
   uid               String   @unique
   email             String   @unique
   nome              String
-  papel             String   @default("cliente")
+  role              String   @default("CLIENT")
+  permissions       String   @default("[]")
+  teamId            String?
+  team              Team?    @relation(fields: [teamId], references: [id])
   status            String   @default("lead")
   ativo             Boolean  @default(true)
   cpf_cnpj          String?
@@ -36,6 +39,14 @@ model User {
   pedidos           Order[]
   timeline_events   TimelineEvent[]
   estimates         Estimate[]
+}
+
+model Team {
+  id        String   @id @default(cuid())
+  nome      String
+  descricao String?
+  criado_em DateTime @default(now())
+  members   User[]
 }
 
 model Product {

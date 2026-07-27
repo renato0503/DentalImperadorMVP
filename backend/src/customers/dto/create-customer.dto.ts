@@ -12,7 +12,7 @@ export class CreateCustomerDto {
 
   @IsString()
   @IsOptional()
-  papel?: string;
+  role?: string;
 
   @IsString()
   @IsOptional()

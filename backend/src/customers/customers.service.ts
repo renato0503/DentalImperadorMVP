@@ -73,7 +73,7 @@ export class CustomersService {
         uid: dto.uid,
         nome: dto.nome,
         email: dto.email,
-        papel: dto.papel || "cliente",
+        role: dto.role || "CLIENT",
         cpf_cnpj: dto.cpf_cnpj,
         telefone: dto.telefone,
         segmento: dto.segmento,
