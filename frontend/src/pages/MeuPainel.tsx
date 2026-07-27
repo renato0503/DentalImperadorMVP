@@ -12,7 +12,6 @@ interface Order { numero: string; status: string; valor: number; data: string; }
 export function MeuPainel() {
   const { userData } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
-  const [metrics, setMetrics] = useState<any>(null);
   const chartRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {

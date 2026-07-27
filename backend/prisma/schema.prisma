@@ -13,6 +13,7 @@ model User {
   email             String   @unique
   nome              String
   papel             String   @default("cliente")
+  status            String   @default("lead")
   ativo             Boolean  @default(true)
   cpf_cnpj          String?
   telefone          String?
@@ -38,16 +39,36 @@ model User {
 }
 
 model Product {
-  id                String      @id @default(cuid())
-  sku               String      @unique
+  id                String         @id @default(cuid())
+  sku               String         @unique
   nome              String
   categoria         String?
+  subcategoria      String?
+  marca             String?
+  descricao_html    String?
+  imagem_url        String?
   preco_tabela      Float?
   preco_promocional Float?
   ncm               String?
-  controlado_anvisa Boolean     @default(false)
-  criado_em         DateTime    @default(now())
+  unidade           String?
+  controlado_anvisa Boolean        @default(false)
+  ativo             Boolean        @default(true)
+  criado_em         DateTime       @default(now())
   order_items       OrderItem[]
+  images            ProductImage[]
+  stock             StockBatch[]
+}
+
+model ProductImage {
+  id        String  @id @default(cuid())
+  sku       String
+  url       String
+  isPrimary Boolean @default(false)
+  order     Int     @default(0)
+  product   Product @relation(fields: [sku], references: [sku])
+
+  @@unique([sku, order])
+  @@index([sku])
 }
 
 model Order {
@@ -156,4 +177,23 @@ model ActivityLog {
   tipo      String
   descricao String
   tempo     DateTime @default(now())
+}
+
+model StockBatch {
+  id                 String   @id @default(cuid())
+  sku                String
+  filial             Int      @default(0)
+  lote               String   @default("")
+  validade           DateTime?
+  quantidade         Int
+  reservado          Int      @default(0)
+  disponivel         Int
+  giro_30d           Float?
+  lead_time_reposicao Int?
+  criado_em          DateTime @default(now())
+  atualizado_em      DateTime @default(now())
+  product            Product  @relation(fields: [sku], references: [sku])
+
+  @@unique([sku, filial, lote])
+  @@index([sku])
 }

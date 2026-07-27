@@ -9,6 +9,9 @@ interface Product {
   preco_promocional: number | null;
   ncm: string;
   controlado_anvisa: boolean;
+  imagem_url?: string | null;
+  descricao_html?: string | null;
+  marca?: string | null;
 }
 
 interface CartItem {
@@ -24,8 +27,10 @@ const CATEGORIAS = [
   "Anestésicos",
 ];
 
-function precoEfetivo(p: Product): number {
-  return p.preco_promocional ?? p.preco_tabela;
+function sanitizeHtml(html: string): string {
+  const div = document.createElement("div");
+  div.textContent = html;
+  return div.innerHTML;
 }
 
 export function OrcamentoPage() {
@@ -35,6 +40,8 @@ export function OrcamentoPage() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [showProposal, setShowProposal] = useState(false);
   const [listaAcademica, setListaAcademica] = useState(false);
+  const [techSheet, setTechSheet] = useState<Product | null>(null);
+  const [imgErrors, setImgErrors] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const url = categoria
@@ -124,11 +131,26 @@ export function OrcamentoPage() {
             <p>Nenhum produto encontrado.</p>
           ) : (
             <div className="product-grid">
-              {products.map((p) => (
+              {products.map((p) => {
+                const imgUrl = p.imagem_url;
+                const imgFailed = imgErrors.has(p.id);
+                return (
                 <div key={p.id} className="card product-card">
+                  {imgUrl && !imgFailed && (
+                    <div className="product-image-wrapper">
+                      <img
+                        src={imgUrl}
+                        alt={p.nome}
+                        className="product-image"
+                        loading="lazy"
+                        onError={() => setImgErrors((prev) => new Set(prev).add(p.id))}
+                      />
+                    </div>
+                  )}
                   <div className="product-info">
                     <h3>{p.nome}</h3>
                     <p className="product-sku">SKU: {p.sku}</p>
+                    {p.marca && <p className="product-marca">{p.marca}</p>}
                     <p className="product-categoria">{p.categoria}</p>
                     {p.controlado_anvisa && (
                       <span className="badge-anvisa">Controlado ANVISA</span>
@@ -147,6 +169,15 @@ export function OrcamentoPage() {
                         </span>
                       </p>
                     )}
+                    {p.descricao_html && (
+                      <button
+                        className="btn btn-sm btn-outline"
+                        style={{ marginTop: 8, fontSize: 12 }}
+                        onClick={() => setTechSheet(p)}
+                      >
+                        Ficha Técnica
+                      </button>
+                    )}
                   </div>
                   <button
                     className="btn btn-primary btn-sm"
@@ -155,7 +186,8 @@ export function OrcamentoPage() {
                     Adicionar
                   </button>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
@@ -216,6 +248,25 @@ export function OrcamentoPage() {
           )}
         </aside>
       </div>
+
+      {techSheet && (
+        <div className="modal-overlay" onClick={() => setTechSheet(null)}>
+          <div className="modal modal-wide" onClick={(e) => e.stopPropagation()}>
+            <h2>Ficha Técnica</h2>
+            <p style={{ marginBottom: 8 }}><strong>{techSheet.nome}</strong> — SKU: {techSheet.sku}</p>
+            {techSheet.marca && <p style={{ marginBottom: 12, color: "#666" }}>Marca: {techSheet.marca}</p>}
+            <div
+              className="tech-sheet-content"
+              dangerouslySetInnerHTML={{ __html: sanitizeHtml(techSheet.descricao_html || "") }}
+            />
+            <div className="modal-actions">
+              <button className="btn btn-outline" onClick={() => setTechSheet(null)}>
+                Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showProposal && (
         <div className="modal-overlay" onClick={() => setShowProposal(false)}>

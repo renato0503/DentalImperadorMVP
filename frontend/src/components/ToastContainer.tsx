@@ -5,13 +5,14 @@ export function ToastContainer() {
   const [toasts, setToasts] = useState<{ id: number; msg: string }[]>([]);
 
   useEffect(() => {
-    return onToast((msg) => {
+    const unsub = onToast((msg) => {
       const id = Date.now();
       setToasts((prev) => [...prev, { id, msg }]);
       setTimeout(() => {
         setToasts((prev) => prev.filter((t) => t.id !== id));
       }, 4000);
     });
+    return () => unsub();
   }, []);
 
   if (toasts.length === 0) return null;

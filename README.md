@@ -2,23 +2,24 @@
 
 Plataforma completa para distribuidores de produtos odontológicos, com chatbot inteligente (IA), orçamentos automáticos, CRM Kanban, gestão de pedidos, churn e muito mais.
 
-> **Status:** ✅ 29 sprints concluídas — plataforma em produção
+> **Status:** ✅ 31 sprints concluídas — plataforma em produção
 > **Frontend:** https://dentalimperador.web.app
 > **Backend:** https://backend-production-4fc1.up.railway.app
-> **Última atualização:** 2026-07-23
+> **Última atualização:** 2026-07-24
 
 ---
 
 ## Stack
 
 | Camada | Tecnologia |
-|---|---|
-| Frontend | React 18 + TypeScript + Vite (PWA) |
-| Backend | NestJS + Prisma + SQLite |
+|---|---|---|
+| Frontend | React 19 + TypeScript + Vite (PWA) |
+| Backend | NestJS + Prisma + SQLite/PostgreSQL |
 | Chat/Firebase | Firebase Auth, Firestore, Hosting |
 | AI | Groq API (LLaMA 3.3 70B) via endpoint `/api/v1/chat` |
+| ERP | FlexTotal (produtos, estoque, clientes) |
 | Email | SendGrid (campanhas de retenção) |
-| Deploy | Firebase Hosting (frontend) + Railway (backend) |
+| Deploy | Firebase Hosting (frontend) + Railway (backend + banco) |
 
 ---
 
@@ -59,8 +60,11 @@ Plataforma completa para distribuidores de produtos odontológicos, com chatbot 
 | 27 | Precificação (promocional + lista acadêmica) | ✅ |
 | 28-29 | Eliminar Cloud Functions → NestJS + Railway | ✅ |
 | 30 | Correções Pós-Deploy (db, PWA, meta tags) | 🔄 |
+| 31 | Integração ERP FlexTotal (nova API D14) | ✅ |
+| 32-33 | Sync incremental + QA (aguardando Lucas) | ❌ |
+| 34-35 | Railway PostgreSQL + Infraestrutura | 📅 |
 
-> Roadmap detalhado em `docs/implementation.md`
+> Roadmap detalhado disponível localmente em `docs/implementation.md` (documentação interna, não versionada no GitHub)
 
 ---
 
@@ -96,16 +100,17 @@ git add . && git commit -m "..." && git push
 
 ---
 
-## Documentação
+## Documentação Interna
+
+A documentação detalhada do projeto está na pasta `docs/` (apenas local — não versionada no GitHub). Principais arquivos:
 
 | Arquivo | Conteúdo |
 |---|---|
 | `docs/context.md` | Visão geral do produto e jornada do usuário |
-| `docs/implementation.md` | Roadmap completo de todas as 29 sprints |
+| `docs/implementation.md` | Roadmap completo das 35 sprints |
 | `docs/stack.md` | Stack tecnológica detalhada |
 | `docs/deployment.md` | Guia de deploy, CI/CD e Railway |
 | `docs/integracao_erp_dados.md` | Integração com ERP FlexTotal |
-| `docs/lucas/` | Endpoints da API do ERP |
 
 ---
 

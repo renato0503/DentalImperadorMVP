@@ -22,6 +22,7 @@ export interface UserData {
   nome: string;
   papel: UserRole;
   ativo: boolean;
+  telefone?: string;
 }
 
 export const ROLE_HOME: Record<UserRole, string> = {
