@@ -1,6 +1,5 @@
 import { Outlet, NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../../lib/auth";
-import { Header } from "../layout/Header";
 
 const MANAGER_LINKS = [
   { to: "/manager", label: "Dashboard", icon: "📊", exact: true },
@@ -41,7 +40,9 @@ export function ManagerLayout() {
         </div>
       </aside>
       <div className="admin-content">
-        <Header />
+        <header className="admin-header">
+          <div className="admin-header-left"><h3>{location.pathname.includes("/manager/crm") ? "CRM" : location.pathname.includes("/manager/metricas") ? "Métricas" : location.pathname.includes("/manager/churn") ? "Churn" : location.pathname.includes("/manager/relatorios") ? "Relatórios" : "Dashboard"}</h3></div>
+        </header>
         <main className="admin-main"><Outlet /></main>
       </div>
     </div>

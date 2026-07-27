@@ -730,6 +730,9 @@ select:focus-visible {
 .admin-sidebar-icon { font-size: 16px; width: 20px; text-align: center; }
 .admin-sidebar-footer { padding: 12px 0; border-top: 1px solid rgba(255,255,255,.1); }
 .admin-content { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.admin-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 24px; background: white; border-bottom: 1px solid var(--borda); }
+.admin-header-left h3 { margin: 0; font-size: 16px; font-weight: 600; }
+.admin-header-right { display: flex; align-items: center; gap: 12px; }
 .admin-main { flex: 1; padding: 24px; overflow-y: auto; }
 
 /* ADMIN TABLE */

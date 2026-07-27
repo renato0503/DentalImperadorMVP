@@ -1,6 +1,5 @@
 import { Outlet, NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../../lib/auth";
-import { Header } from "../layout/Header";
 
 const OPERATOR_LINKS = [
   { to: "/operator", label: "Picking", icon: "📦", exact: true },
@@ -40,7 +39,9 @@ export function OperatorLayout() {
         </div>
       </aside>
       <div className="admin-content">
-        <Header />
+        <header className="admin-header">
+          <div className="admin-header-left"><h3>{location.pathname.includes("/operator/crm") ? "CRM" : location.pathname.includes("/operator/dashboard") ? "Dashboard" : location.pathname.includes("/operator/perfil") ? "Perfil" : "Picking"}</h3></div>
+        </header>
         <main className="admin-main"><Outlet /></main>
       </div>
     </div>

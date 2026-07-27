@@ -48,4 +48,10 @@ async function bootstrap() {
   logger.log(`Backend rodando em http://localhost:${port}`);
   logger.log(`API Docs em http://localhost:${port}/api/docs`);
 }
-bootstrap();
+bootstrap().catch((err) => {
+  const logger = new Logger("Bootstrap");
+  logger.error("Falha ao iniciar backend");
+  logger.error(err.message);
+  logger.error(err.stack);
+  process.exit(1);
+});
