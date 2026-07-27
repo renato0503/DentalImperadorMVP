@@ -46,3 +46,8 @@ scripts/service-account*.json
 
 # SQLite database (dev only)
 *.db
+
+# ============================================================
+# Documentação interna (NUNCA versionar)
+# ============================================================
+docs/

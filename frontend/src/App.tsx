@@ -2,6 +2,9 @@ import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./lib/auth";
 import { AppShell } from "./components/layout/AppShell";
+import { AdminLayout } from "./components/layout/AdminLayout";
+import { ManagerLayout } from "./components/layout/ManagerLayout";
+import { OperatorLayout } from "./components/layout/OperatorLayout";
 import { InstallPrompt, OfflineNotice } from "./components/pwa/InstallPrompt";
 import { ToastContainer } from "./components/ToastContainer";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
@@ -19,6 +22,10 @@ const CampaignsPage = lazy(() => import("./pages/churn/Campaigns").then((m) => (
 const PickingMonitor = lazy(() => import("./pages/warehouse/PickingMonitor").then((m) => ({ default: m.PickingMonitor })));
 const ReportsPage = lazy(() => import("./pages/reports/ReportsPage").then((m) => ({ default: m.ReportsPage })));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard").then((m) => ({ default: m.AdminDashboard })));
+const SyncPanel = lazy(() => import("./pages/admin/SyncPanel").then((m) => ({ default: m.SyncPanel })));
+const ProductManager = lazy(() => import("./pages/admin/ProductManager").then((m) => ({ default: m.ProductManager })));
+const CustomerTable = lazy(() => import("./pages/admin/CustomerTable").then((m) => ({ default: m.CustomerTable })));
+const ManagerDashboard = lazy(() => import("./pages/manager/ManagerDashboard").then((m) => ({ default: m.ManagerDashboard })));
 const MeuPainel = lazy(() => import("./pages/MeuPainel").then((m) => ({ default: m.MeuPainel })));
 const SalesMetricsPage = lazy(() => import("./pages/SalesMetrics").then((m) => ({ default: m.SalesMetricsPage })));
 const PerfilPage = lazy(() => import("./pages/Perfil").then((m) => ({ default: m.PerfilPage })));
@@ -36,6 +43,41 @@ export default function App() {
         <ToastContainer />
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+
+          <Route path="/admin" element={
+            <ProtectedRoute resource="admin">
+              <AdminLayout />
+            </ProtectedRoute>
+          }>
+            <Route index element={<AdminDashboard />} />
+            <Route path="sync" element={<SyncPanel />} />
+            <Route path="produtos" element={<ProductManager />} />
+            <Route path="clientes" element={<CustomerTable />} />
+          </Route>
+
+          <Route path="/manager" element={
+            <ProtectedRoute resource="dashboard">
+              <ManagerLayout />
+            </ProtectedRoute>
+          }>
+            <Route index element={<ManagerDashboard />} />
+            <Route path="crm" element={<ProtectedRoute resource="crm"><CRMPage /></ProtectedRoute>} />
+            <Route path="metricas" element={<ProtectedRoute resource="relatorios"><SalesMetricsPage /></ProtectedRoute>} />
+            <Route path="churn" element={<ProtectedRoute resource="churn"><ChurnDashboard /></ProtectedRoute>} />
+            <Route path="relatorios" element={<ProtectedRoute resource="relatorios"><ReportsPage /></ProtectedRoute>} />
+          </Route>
+
+          <Route path="/operator" element={
+            <ProtectedRoute resource="picking">
+              <OperatorLayout />
+            </ProtectedRoute>
+          }>
+            <Route index element={<PickingMonitor />} />
+            <Route path="crm" element={<ProtectedRoute resource="crm"><CRMPage /></ProtectedRoute>} />
+            <Route path="dashboard" element={<ProtectedRoute resource="dashboard"><DashboardPage /></ProtectedRoute>} />
+            <Route path="perfil" element={<PerfilPage />} />
+          </Route>
+
           <Route path="*" element={
             <AppShell>
               <Suspense fallback={<Loading />}>
@@ -52,7 +94,6 @@ export default function App() {
                   <Route path="/picking" element={<ProtectedRoute resource="picking"><PickingMonitor /></ProtectedRoute>} />
                   <Route path="/relatorios" element={<ProtectedRoute resource="relatorios"><ReportsPage /></ProtectedRoute>} />
                   <Route path="/metricas-vendas" element={<ProtectedRoute resource="relatorios"><SalesMetricsPage /></ProtectedRoute>} />
-                  <Route path="/admin" element={<ProtectedRoute resource="admin"><AdminDashboard /></ProtectedRoute>} />
                   <Route path="/meu-painel" element={<MeuPainel />} />
                   <Route path="/perfil" element={<PerfilPage />} />
                   <Route path="*" element={<Navigate to="/" replace />} />

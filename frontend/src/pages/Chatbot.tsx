@@ -80,7 +80,7 @@ export function ChatbotPage() {
               </span>
             </div>
           )}
-          <ChatWidget leadData={triagemData} />
+          <ChatWidget leadData={triagemData ?? undefined} />
         </div>
       )}
     </div>

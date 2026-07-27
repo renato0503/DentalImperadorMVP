@@ -31,6 +31,13 @@ export interface ActivityItem {
   tempo: Date;
 }
 
+export interface SyncStatus {
+  products: { total: number; lastSync: string | null };
+  clients: { total: number; lastSync: string | null };
+  stock: { total: number; lastSync: string | null };
+  techSheets: { total: number; lastSync: string | null };
+}
+
 @Injectable()
 export class AdminService {
   private readonly logger = new Logger(AdminService.name);
@@ -129,5 +136,24 @@ export class AdminService {
       orderBy: { tempo: "desc" },
       take: limit,
     });
+  }
+
+  async getSyncStatus(): Promise<SyncStatus> {
+    const [totalProducts, totalClients, totalStock, totalTechSheets, lastSyncProducts, lastSyncClients, lastSyncStock] = await Promise.all([
+      this.prisma.product.count(),
+      this.prisma.user.count({ where: { origem: "ERP FlexTotal" } }),
+      this.prisma.stockBatch.count(),
+      this.prisma.product.count({ where: { descricao_html: { not: null } } }),
+      this.cache.get<string>("flextotal:lastSync:products"),
+      this.cache.get<string>("flextotal:lastSync:clients"),
+      this.cache.get<string>("flextotal:lastSync:stock"),
+    ]);
+
+    return {
+      products: { total: totalProducts, lastSync: lastSyncProducts ?? null },
+      clients: { total: totalClients, lastSync: lastSyncClients ?? null },
+      stock: { total: totalStock, lastSync: lastSyncStock ?? null },
+      techSheets: { total: totalTechSheets, lastSync: null },
+    };
   }
 }

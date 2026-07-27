@@ -16,6 +16,7 @@ import { CrmModule } from "./crm/crm.module";
 import { NotificationsModule } from "./notifications/notifications.module";
 import { ChatModule } from "./chat/chat.module";
 import { ApiKeyModule } from "./api-key/api-key.module";
+import { FlexTotalModule } from "./flextotal/flextotal.module";
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { ApiKeyModule } from "./api-key/api-key.module";
     CrmModule,
     NotificationsModule,
     ChatModule,
+    FlexTotalModule,
   ],
 })
 export class AppModule {}

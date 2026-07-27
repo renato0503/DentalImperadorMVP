@@ -1,5 +1,5 @@
 import { Controller, Get, Patch, Param, Body, Query } from "@nestjs/common";
-import { AdminService, type AdminMetrics, type AdminUser, type ActivityItem } from "./admin.service";
+import { AdminService, type AdminMetrics, type AdminUser, type ActivityItem, type SyncStatus } from "./admin.service";
 
 @Controller("admin")
 export class AdminController {
@@ -26,5 +26,10 @@ export class AdminController {
   @Get("activity")
   async getActivity(@Query("limit") limit?: string): Promise<ActivityItem[]> {
     return this.adminService.getActivity(limit ? +limit : 10);
+  }
+
+  @Get("sync-status")
+  async getSyncStatus(): Promise<SyncStatus> {
+    return this.adminService.getSyncStatus();
   }
 }
