@@ -179,6 +179,16 @@ model ActivityLog {
   tempo     DateTime @default(now())
 }
 
+model SyncLog {
+  id         String    @id @default(cuid())
+  entity     String
+  status     String    @default("queued")
+  startedAt  DateTime  @default(now())
+  finishedAt DateTime?
+  result     String?
+  error      String?
+}
+
 model StockBatch {
   id                 String   @id @default(cuid())
   sku                String

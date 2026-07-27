@@ -1,34 +1,52 @@
-import { Controller, Get, Post, Param } from "@nestjs/common";
-import { FlexTotalService } from "./flextotal.service";
-import type { SyncResult } from "./flextotal.types";
+import { Controller, Get, Post, Param, NotFoundException } from "@nestjs/common";
+import { FlexTotalService, SyncLogEntry } from "./flextotal.service";
 
 @Controller("flextotal")
 export class FlexTotalController {
   constructor(private readonly flextotal: FlexTotalService) {}
 
   @Post("sync/clients")
-  async syncClients(): Promise<SyncResult> {
-    return this.flextotal.syncClients();
+  async syncClients(): Promise<{ syncId: string }> {
+    const syncId = await this.flextotal.startSync("clients");
+    return { syncId };
   }
 
   @Post("sync/products")
-  async syncProducts(): Promise<SyncResult> {
-    return this.flextotal.syncProducts();
+  async syncProducts(): Promise<{ syncId: string }> {
+    const syncId = await this.flextotal.startSync("products");
+    return { syncId };
   }
 
   @Post("sync/stock")
-  async syncStock(): Promise<SyncResult> {
-    return this.flextotal.syncStock();
+  async syncStock(): Promise<{ syncId: string }> {
+    const syncId = await this.flextotal.startSync("stock");
+    return { syncId };
   }
 
   @Post("sync/tech-sheets")
-  async syncTechSheets(): Promise<SyncResult> {
-    return this.flextotal.syncTechSheets();
+  async syncTechSheets(): Promise<{ syncId: string }> {
+    const syncId = await this.flextotal.startSync("tech-sheets");
+    return { syncId };
   }
 
   @Post("sync/all")
-  async syncAll(): Promise<SyncResult[]> {
-    return this.flextotal.syncAll();
+  async syncAll(): Promise<{ syncId: string }> {
+    const syncId = await this.flextotal.startSync("all");
+    return { syncId };
+  }
+
+  @Get("sync/status/:id")
+  async getSyncStatus(@Param("id") id: string): Promise<SyncLogEntry> {
+    const status = await this.flextotal.getSyncStatus(id);
+    if (!status) throw new NotFoundException(`Sync ${id} não encontrado`);
+    return status;
+  }
+
+  @Get("sync/last/:entity")
+  async getLastSyncStatus(@Param("entity") entity: string): Promise<SyncLogEntry> {
+    const status = await this.flextotal.getLastSyncStatus(entity);
+    if (!status) throw new NotFoundException(`Nenhum sync encontrado para ${entity}`);
+    return status;
   }
 
   @Get("tech-sheet/:sku")
