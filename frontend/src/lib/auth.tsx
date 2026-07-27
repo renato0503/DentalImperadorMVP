@@ -26,9 +26,9 @@ export interface UserData {
 }
 
 export const ROLE_HOME: Record<UserRole, string> = {
-  admin: "/admin",
-  manager: "/dashboard",
-  operator: "/picking",
+  admin: "/gestao",
+  manager: "/gestao",
+  operator: "/operacao",
   cliente: "/meu-painel",
 };
 

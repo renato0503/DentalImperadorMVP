@@ -1,29 +1,27 @@
 import { Outlet, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../lib/auth";
+import { usePermission } from "../../lib/permissions";
 import { NotificationBell } from "../notifications/NotificationBell";
 
 const OPERATOR_LINKS = [
-  { to: "/operator", label: "Picking", icon: "📦", exact: true },
-  { to: "/operator/crm", label: "CRM", icon: "👥" },
-  { to: "/operator/dashboard", label: "Dashboard", icon: "📊" },
-  { to: "/operator/perfil", label: "Perfil", icon: "👤" },
+  { to: "/operacao", label: "Picking", icon: "📦", exact: true },
+  { to: "/operacao/crm", label: "CRM", icon: "👥" },
+  { to: "/operacao/dashboard", label: "Dashboard", icon: "📊" },
+  { to: "/operacao/perfil", label: "Perfil", icon: "👤" },
 ];
-
-const pageTitle = (path: string) => {
-  if (path.includes("/operator/crm")) return "CRM";
-  if (path.includes("/operator/dashboard")) return "Dashboard";
-  if (path.includes("/operator/perfil")) return "Perfil";
-  return "Picking";
-};
 
 export function OperatorLayout() {
   const { userData, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
+  const currentPage = OPERATOR_LINKS.find(
+    (l) => l.exact ? location.pathname === l.to : location.pathname.startsWith(l.to)
+  );
+
   return (
     <div className="admin-layout">
-      <aside className="admin-sidebar" style={{ background: "#7c2d12" }}>
+      <aside className="admin-sidebar" style={{ background: "#78350F" }}>
         <div className="admin-sidebar-header">
           <img src="/logodental.png" alt="Dental Imperador" className="admin-sidebar-logo" />
           <div className="admin-sidebar-header-info">
@@ -31,7 +29,7 @@ export function OperatorLayout() {
             <span>{userData?.nome || "Operador"}</span>
           </div>
         </div>
-        <div className="admin-sidebar-section-title">Painel</div>
+        <div className="admin-sidebar-section-title">Operação</div>
         <nav className="admin-sidebar-nav">
           {OPERATOR_LINKS.map((link) => {
             const isActive = link.exact
@@ -61,7 +59,7 @@ export function OperatorLayout() {
             <strong>Dental Imperador</strong>
           </div>
           <div className="admin-header-center">
-            <h3>{pageTitle(location.pathname)}</h3>
+            <h3>{currentPage?.label || "Picking"}</h3>
           </div>
           <div className="admin-header-right">
             <NotificationBell />

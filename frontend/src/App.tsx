@@ -2,8 +2,7 @@ import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./lib/auth";
 import { AppShell } from "./components/layout/AppShell";
-import { AdminLayout } from "./components/layout/AdminLayout";
-import { ManagerLayout } from "./components/layout/ManagerLayout";
+import { GestaoLayout } from "./components/layout/GestaoLayout";
 import { OperatorLayout } from "./components/layout/OperatorLayout";
 import { InstallPrompt, OfflineNotice } from "./components/pwa/InstallPrompt";
 import { ToastContainer } from "./components/ToastContainer";
@@ -44,56 +43,47 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
 
-          <Route path="/admin" element={
-            <ProtectedRoute resource="admin">
-              <AdminLayout />
+          {/* Gestão Unificada (Admin + Manager) */}
+          <Route path="/gestao" element={
+            <ProtectedRoute resource="gestao">
+              <GestaoLayout />
             </ProtectedRoute>
           }>
             <Route index element={<AdminDashboard />} />
-            <Route path="sync" element={<SyncPanel />} />
-            <Route path="produtos" element={<ProductManager />} />
-            <Route path="clientes" element={<CustomerTable />} />
+            <Route path="crm" element={<ProtectedRoute resource="gestao.crm"><CRMPage /></ProtectedRoute>} />
+            <Route path="equipe" element={<ProtectedRoute resource="gestao.equipe"><ManagerDashboard /></ProtectedRoute>} />
+            <Route path="churn" element={<ProtectedRoute resource="gestao.churn"><ChurnDashboard /></ProtectedRoute>} />
+            <Route path="campanhas" element={<ProtectedRoute resource="gestao.churn"><CampaignsPage /></ProtectedRoute>} />
+            <Route path="relatorios" element={<ProtectedRoute resource="gestao.relatorios"><ReportsPage /></ProtectedRoute>} />
+            <Route path="metricas" element={<ProtectedRoute resource="gestao.relatorios"><SalesMetricsPage /></ProtectedRoute>} />
+            <Route path="produtos" element={<ProtectedRoute resource="gestao"><ProductManager /></ProtectedRoute>} />
+            <Route path="clientes" element={<ProtectedRoute resource="gestao"><CustomerTable /></ProtectedRoute>} />
+            <Route path="sync" element={<ProtectedRoute resource="gestao.config"><SyncPanel /></ProtectedRoute>} />
+            <Route path="usuarios" element={<ProtectedRoute resource="gestao.config"><AdminDashboard /></ProtectedRoute>} />
           </Route>
 
-          <Route path="/manager" element={
-            <ProtectedRoute resource="dashboard">
-              <ManagerLayout />
-            </ProtectedRoute>
-          }>
-            <Route index element={<ManagerDashboard />} />
-            <Route path="crm" element={<ProtectedRoute resource="crm"><CRMPage /></ProtectedRoute>} />
-            <Route path="metricas" element={<ProtectedRoute resource="relatorios"><SalesMetricsPage /></ProtectedRoute>} />
-            <Route path="churn" element={<ProtectedRoute resource="churn"><ChurnDashboard /></ProtectedRoute>} />
-            <Route path="relatorios" element={<ProtectedRoute resource="relatorios"><ReportsPage /></ProtectedRoute>} />
-          </Route>
-
-          <Route path="/operator" element={
-            <ProtectedRoute resource="picking">
+          {/* Operação (Operador) */}
+          <Route path="/operacao" element={
+            <ProtectedRoute resource="operacao">
               <OperatorLayout />
             </ProtectedRoute>
           }>
             <Route index element={<PickingMonitor />} />
-            <Route path="crm" element={<ProtectedRoute resource="crm"><CRMPage /></ProtectedRoute>} />
-            <Route path="dashboard" element={<ProtectedRoute resource="dashboard"><DashboardPage /></ProtectedRoute>} />
+            <Route path="crm" element={<ProtectedRoute resource="operacao.crm"><CRMPage /></ProtectedRoute>} />
+            <Route path="dashboard" element={<ProtectedRoute resource="operacao"><DashboardPage /></ProtectedRoute>} />
             <Route path="perfil" element={<PerfilPage />} />
           </Route>
 
+          {/* Experiência do Cliente (AppShell) */}
           <Route path="*" element={
             <AppShell>
               <Suspense fallback={<Loading />}>
                 <Routes>
                   <Route path="/" element={<HomePage />} />
                   <Route path="/chatbot" element={<ChatbotPage />} />
-                  <Route path="/dashboard" element={<ProtectedRoute resource="dashboard"><DashboardPage /></ProtectedRoute>} />
                   <Route path="/orcamento" element={<OrcamentoPage />} />
                   <Route path="/pedido" element={<PedidoPage />} />
-                  <Route path="/crm" element={<ProtectedRoute resource="crm"><CRMPage /></ProtectedRoute>} />
-                  <Route path="/crm/cliente/:id" element={<ProtectedRoute resource="crm"><CustomerProfile /></ProtectedRoute>} />
-                  <Route path="/churn" element={<ProtectedRoute resource="churn"><ChurnDashboard /></ProtectedRoute>} />
-                  <Route path="/campanhas" element={<ProtectedRoute resource="campanhas"><CampaignsPage /></ProtectedRoute>} />
-                  <Route path="/picking" element={<ProtectedRoute resource="picking"><PickingMonitor /></ProtectedRoute>} />
-                  <Route path="/relatorios" element={<ProtectedRoute resource="relatorios"><ReportsPage /></ProtectedRoute>} />
-                  <Route path="/metricas-vendas" element={<ProtectedRoute resource="relatorios"><SalesMetricsPage /></ProtectedRoute>} />
+                  <Route path="/dashboard" element={<ProtectedRoute resource="gestao"><DashboardPage /></ProtectedRoute>} />
                   <Route path="/meu-painel" element={<MeuPainel />} />
                   <Route path="/perfil" element={<PerfilPage />} />
                   <Route path="*" element={<Navigate to="/" replace />} />
