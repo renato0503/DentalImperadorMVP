@@ -25,11 +25,22 @@ const LAST_SYNC_KEY_PRODUCTS = "flextotal:lastSync:products";
 const LAST_SYNC_KEY_CLIENTS = "flextotal:lastSync:clients";
 const LAST_SYNC_KEY_STOCK = "flextotal:lastSync:stock";
 
+export interface SyncLogEntry {
+  id: string;
+  entity: string;
+  status: string;
+  startedAt: Date;
+  finishedAt: Date | null;
+  result: SyncResult | null;
+  error: string | null;
+}
+
 @Injectable()
 export class FlexTotalService {
   private readonly logger = new Logger(FlexTotalService.name);
   private readonly baseURL = FLEXTOTAL_CONFIG.baseURL;
   private readonly defaultPageSize = FLEXTOTAL_CONFIG.defaultPageSize;
+  private runningSyncs = new Map<string, Promise<void>>();
 
   constructor(
     private readonly httpService: HttpService,
@@ -37,6 +48,107 @@ export class FlexTotalService {
     private readonly cache: CacheService,
     private readonly eventEmitter: EventEmitter2,
   ) {}
+
+  async startSync(entity: string): Promise<string> {
+    const existing = this.runningSyncs.get(entity);
+    if (existing) {
+      const last = await this.prisma.syncLog.findFirst({
+        where: { entity, status: { in: ["queued", "running"] } },
+        orderBy: { startedAt: "desc" },
+      });
+      if (last) return last.id;
+    }
+
+    const log = await this.prisma.syncLog.create({
+      data: { entity, status: "queued" },
+    });
+
+    const promise = this.runSync(entity, log.id);
+    this.runningSyncs.set(entity, promise);
+    promise.finally(() => this.runningSyncs.delete(entity));
+
+    return log.id;
+  }
+
+  async getSyncStatus(id: string): Promise<SyncLogEntry | null> {
+    const log = await this.prisma.syncLog.findUnique({ where: { id } });
+    if (!log) return null;
+    return {
+      id: log.id,
+      entity: log.entity,
+      status: log.status,
+      startedAt: log.startedAt,
+      finishedAt: log.finishedAt,
+      result: log.result ? JSON.parse(log.result) : null,
+      error: log.error,
+    };
+  }
+
+  async getLastSyncStatus(entity: string): Promise<SyncLogEntry | null> {
+    const log = await this.prisma.syncLog.findFirst({
+      where: { entity },
+      orderBy: { startedAt: "desc" },
+    });
+    if (!log) return null;
+    return {
+      id: log.id,
+      entity: log.entity,
+      status: log.status,
+      startedAt: log.startedAt,
+      finishedAt: log.finishedAt,
+      result: log.result ? JSON.parse(log.result) : null,
+      error: log.error,
+    };
+  }
+
+  private async runSync(entity: string, logId: string): Promise<void> {
+    await this.prisma.syncLog.update({
+      where: { id: logId },
+      data: { status: "running", startedAt: new Date() },
+    });
+
+    try {
+      let result: SyncResult | SyncResult[];
+
+      switch (entity) {
+        case "products":
+          result = await this.syncProducts();
+          break;
+        case "clients":
+          result = await this.syncClients();
+          break;
+        case "stock":
+          result = await this.syncStock();
+          break;
+        case "tech-sheets":
+          result = await this.syncTechSheets();
+          break;
+        case "all":
+          result = await this.syncAll();
+          break;
+        default:
+          throw new Error(`Entidade desconhecida: ${entity}`);
+      }
+
+      await this.prisma.syncLog.update({
+        where: { id: logId },
+        data: {
+          status: "completed",
+          finishedAt: new Date(),
+          result: JSON.stringify(result),
+        },
+      });
+    } catch (err) {
+      await this.prisma.syncLog.update({
+        where: { id: logId },
+        data: {
+          status: "failed",
+          finishedAt: new Date(),
+          error: (err as Error).message,
+        },
+      });
+    }
+  }
 
   async syncClients(): Promise<SyncResult> {
     const start = Date.now();
@@ -284,7 +396,7 @@ export class FlexTotalService {
     this.logger.debug(`POST ${url} page=${(payload as any).PAGE}`);
 
     const { data } = await firstValueFrom(
-      this.httpService.post<T>(url, payload, { headers, timeout: 30000 }),
+      this.httpService.post<T>(url, payload, { headers, timeout: 120000 }),
     );
 
     this.logger.debug(`RESPONSE ${url}: ${JSON.stringify(data).substring(0, 500)}`);
@@ -383,5 +495,4 @@ export class FlexTotalService {
 
     return true;
   }
-
 }

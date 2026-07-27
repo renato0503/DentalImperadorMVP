@@ -139,21 +139,29 @@ export class AdminService {
   }
 
   async getSyncStatus(): Promise<SyncStatus> {
-    const [totalProducts, totalClients, totalStock, totalTechSheets, lastSyncProducts, lastSyncClients, lastSyncStock] = await Promise.all([
+    const [totalProducts, totalClients, totalStock, totalTechSheets, lastSyncLogs] = await Promise.all([
       this.prisma.product.count(),
       this.prisma.user.count({ where: { origem: "ERP FlexTotal" } }),
       this.prisma.stockBatch.count(),
       this.prisma.product.count({ where: { descricao_html: { not: null } } }),
-      this.cache.get<string>("flextotal:lastSync:products"),
-      this.cache.get<string>("flextotal:lastSync:clients"),
-      this.cache.get<string>("flextotal:lastSync:stock"),
+      this.prisma.syncLog.findMany({
+        where: { status: "completed" },
+        orderBy: { startedAt: "desc" },
+        distinct: ["entity"],
+        take: 10,
+      }),
     ]);
 
+    const getLastSync = (entity: string) => {
+      const log = lastSyncLogs.find((l) => l.entity === entity);
+      return log ? log.finishedAt?.toISOString() ?? null : null;
+    };
+
     return {
-      products: { total: totalProducts, lastSync: lastSyncProducts ?? null },
-      clients: { total: totalClients, lastSync: lastSyncClients ?? null },
-      stock: { total: totalStock, lastSync: lastSyncStock ?? null },
-      techSheets: { total: totalTechSheets, lastSync: null },
+      products: { total: totalProducts, lastSync: getLastSync("products") },
+      clients: { total: totalClients, lastSync: getLastSync("clients") },
+      stock: { total: totalStock, lastSync: getLastSync("stock") },
+      techSheets: { total: totalTechSheets, lastSync: getLastSync("tech-sheets") },
     };
   }
 }

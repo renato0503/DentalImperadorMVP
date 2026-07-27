@@ -17,14 +17,11 @@ export class FlexTotalScheduler {
     }
 
     this.logger.log("Iniciando sincronização automática com FlexTotal ERP...");
-    const results = await this.flextotal.syncAll();
 
-    for (const r of results) {
-      if (r.success) {
-        this.logger.log(`[${r.entity}] OK — ${r.recordsProcessed} registros (${r.durationMs}ms)`);
-      } else {
-        this.logger.error(`[${r.entity}] FALHA — ${r.errors.join("; ")}`);
-      }
+    const entities = ["products", "clients", "stock", "tech-sheets"];
+    for (const entity of entities) {
+      const syncId = await this.flextotal.startSync(entity);
+      this.logger.log(`[${entity}] Sync disparado — ID: ${syncId}`);
     }
   }
 }
