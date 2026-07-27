@@ -1,6 +1,5 @@
-import { useState, useCallback, useRef, useEffect } from "react";
-
-export type SyncEntity = "products" | "clients" | "stock" | "tech-sheets" | "all";
+import { useState, useCallback } from "react";
+import { showToast } from "../lib/toast";
 
 export interface SyncLogEntry {
   id: string;
@@ -20,84 +19,51 @@ export interface SyncLogEntry {
   error: string | null;
 }
 
-export interface SyncState {
-  loading: boolean;
-  entry: SyncLogEntry | null;
-  error: string | null;
-}
+export function useSyncStatus() {
+  const [statuses, setStatuses] = useState<Record<string, SyncLogEntry | null>>({});
+  const [loading, setLoading] = useState(false);
 
-export function useSync() {
-  const [states, setStates] = useState<Record<SyncEntity, SyncState>>({
-    products: { loading: false, entry: null, error: null },
-    clients: { loading: false, entry: null, error: null },
-    stock: { loading: false, entry: null, error: null },
-    "tech-sheets": { loading: false, entry: null, error: null },
-    all: { loading: false, entry: null, error: null },
-  });
-
-  const intervalsRef = useRef<Record<string, ReturnType<typeof setInterval>>>({});
-  const mountedRef = useRef(true);
-
-  useEffect(() => {
-    return () => {
-      mountedRef.current = false;
-      Object.values(intervalsRef.current).forEach(clearInterval);
-    };
+  const fetchLastSync = useCallback(async (entity: string) => {
+    try {
+      const res = await fetch(`/api/v1/flextotal/sync/last/${entity}`);
+      if (!res.ok) return;
+      const entry: SyncLogEntry = await res.json();
+      setStatuses((prev) => ({ ...prev, [entity]: entry }));
+    } catch {
+      // silencioso
+    }
   }, []);
 
-  const pollStatus = useCallback((entity: SyncEntity, syncId: string) => {
-    const interval = setInterval(async () => {
-      try {
-        const res = await fetch(`/api/v1/flextotal/sync/status/${syncId}`);
-        if (!res.ok) {
-          clearInterval(interval);
-          return;
-        }
-        const entry: SyncLogEntry = await res.json();
-
-        if (!mountedRef.current) {
-          clearInterval(interval);
-          return;
-        }
-
-        setStates((prev) => ({
-          ...prev,
-          [entity]: { loading: entry.status === "queued" || entry.status === "running", entry, error: null },
-        }));
-
-        if (entry.status === "completed" || entry.status === "failed") {
-          clearInterval(interval);
-          delete intervalsRef.current[syncId];
-        }
-      } catch {
-        clearInterval(interval);
-      }
-    }, 2000);
-
-    intervalsRef.current[syncId] = interval;
-  }, []);
-
-  const runSync = useCallback(async (entity: SyncEntity) => {
-    setStates((prev) => ({ ...prev, [entity]: { loading: true, entry: null, error: null } }));
-
+  const triggerSync = useCallback(async (entity: string) => {
+    setLoading(true);
     try {
       const res = await fetch(`/api/v1/flextotal/sync/${entity}`, { method: "POST" });
-      if (!res.ok) {
-        const text = await res.text();
-        setStates((prev) => ({ ...prev, [entity]: { loading: false, entry: null, error: text } }));
-        return;
-      }
-
+      if (!res.ok) return false;
       const { syncId } = await res.json();
-      pollStatus(entity, syncId);
-    } catch (err) {
-      setStates((prev) => ({ ...prev, [entity]: { loading: false, entry: null, error: (err as Error).message } }));
+      return syncId;
+    } catch {
+      return false;
+    } finally {
+      setLoading(false);
     }
-  }, [pollStatus]);
-
-  const reset = useCallback((entity: SyncEntity) => {
-    setStates((prev) => ({ ...prev, [entity]: { loading: false, entry: null, error: null } }));
   }, []);
 
-  return { states, runSync, reset };
+  return { statuses, loading, fetchLastSync, triggerSync };
+}
+
+export function formatDuration(ms: number): string {
+  if (ms > 60000) return `${(ms / 60000).toFixed(1)}min`;
+  if (ms > 1000) return `${(ms / 1000).toFixed(1)}s`;
+  return `${ms}ms`;
+}
+
+export function formatSyncTime(iso: string | null): string {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  const hoje = new Date();
+  const diff = hoje.getTime() - d.getTime();
+  if (diff < 60000) return "Agora mesmo";
+  if (diff < 3600000) return `${Math.floor(diff / 60000)}min atrás`;
+  if (diff < 86400000) return `Hoje, ${d.getHours().toString().padStart(2, "0")}:${d.getMinutes().toString().padStart(2, "0")}`;
+  return `${d.getDate()}/${d.getMonth() + 1} ${d.getHours().toString().padStart(2, "0")}:${d.getMinutes().toString().padStart(2, "0")}`;
 }
