@@ -67,9 +67,44 @@ export function ProductManager() {
         </select>
       </div>
 
-      {loading ? <p>Carregando...</p> : (
+      {loading ? (
+        <div className="table-responsive">
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>SKU</th>
+                <th>Nome</th>
+                <th>Marca</th>
+                <th>Categoria</th>
+                <th>Preço</th>
+                <th>NCM</th>
+                <th>Ativo</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Array.from({ length: 8 }).map((_, i) => (
+                <tr key={i}>
+                  <td><div className="skeleton skeleton-cell skeleton-cell-sm" /></td>
+                  <td><div className="skeleton skeleton-cell skeleton-cell-lg" /></td>
+                  <td><div className="skeleton skeleton-cell skeleton-cell-md" /></td>
+                  <td><div className="skeleton skeleton-cell skeleton-cell-md" /></td>
+                  <td><div className="skeleton skeleton-cell skeleton-cell-sm" /></td>
+                  <td><div className="skeleton skeleton-cell skeleton-cell-sm" /></td>
+                  <td><div className="skeleton skeleton-cell skeleton-cell-sm" /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="empty-state">
+          <div className="empty-state-icon">📦</div>
+          <h3>Nenhum produto encontrado</h3>
+          <p>{search ? "Tente alterar os filtros de busca." : "Nenhum produto cadastrado no catálogo."}</p>
+        </div>
+      ) : (
         <>
-          <div style={{ overflowX: "auto" }}>
+          <div className="table-responsive">
             <table className="admin-table">
               <thead>
                 <tr>

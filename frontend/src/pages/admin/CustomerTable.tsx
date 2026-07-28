@@ -72,9 +72,46 @@ export function CustomerTable() {
         </select>
       </div>
 
-      {loading ? <p>Carregando...</p> : (
+      {loading ? (
+        <div className="table-responsive">
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>CPF/CNPJ</th>
+                <th>Email</th>
+                <th>Telefone</th>
+                <th>Cidade</th>
+                <th>UF</th>
+                <th>Status</th>
+                <th>Origem</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Array.from({ length: 8 }).map((_, i) => (
+                <tr key={i}>
+                  <td><div className="skeleton skeleton-cell skeleton-cell-md" /></td>
+                  <td><div className="skeleton skeleton-cell skeleton-cell-sm" /></td>
+                  <td><div className="skeleton skeleton-cell skeleton-cell-lg" /></td>
+                  <td><div className="skeleton skeleton-cell skeleton-cell-sm" /></td>
+                  <td><div className="skeleton skeleton-cell skeleton-cell-sm" /></td>
+                  <td><div className="skeleton skeleton-cell skeleton-cell-sm" /></td>
+                  <td><div className="skeleton skeleton-cell skeleton-cell-sm" /></td>
+                  <td><div className="skeleton skeleton-cell skeleton-cell-sm" /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="empty-state">
+          <div className="empty-state-icon">👥</div>
+          <h3>Nenhum cliente encontrado</h3>
+          <p>{search ? "Tente alterar os filtros de busca." : "Nenhum cliente cadastrado na base."}</p>
+        </div>
+      ) : (
         <>
-          <div style={{ overflowX: "auto" }}>
+          <div className="table-responsive">
             <table className="admin-table">
               <thead>
                 <tr>

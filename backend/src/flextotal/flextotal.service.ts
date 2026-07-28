@@ -21,10 +21,6 @@ import type {
   SyncResult,
 } from "./flextotal.types";
 
-const LAST_SYNC_KEY_PRODUCTS = "flextotal:lastSync:products";
-const LAST_SYNC_KEY_CLIENTS = "flextotal:lastSync:clients";
-const LAST_SYNC_KEY_STOCK = "flextotal:lastSync:stock";
-
 export interface SyncLogEntry {
   id: string;
   entity: string;
@@ -162,10 +158,13 @@ export class FlexTotalService {
       let page = 1;
       let hasMore = true;
 
+      const alteradoDesde = await this.getLastSyncTimestamp("clients");
+
       while (hasMore) {
         const payload: FlexTotalClientesRequest = {
           PAGE: String(page),
           PAGE_SIZE: String(this.defaultPageSize),
+          ALTERADO_DESDE: alteradoDesde,
         };
 
         const response = await this.callApi<FlexTotalClientesResponse>(
@@ -191,7 +190,6 @@ export class FlexTotalService {
         page++;
       }
 
-      await this.cache.set(LAST_SYNC_KEY_CLIENTS, new Date().toISOString());
       await this.cache.invalidate("flextotal:customers");
       this.eventEmitter.emit("flextotal.sync.customers.complete", { records: result.recordsProcessed });
     } catch (err) {
@@ -203,6 +201,16 @@ export class FlexTotalService {
     result.durationMs = Date.now() - start;
     this.logger.log(`syncClients: ${result.recordsProcessed} registros em ${result.durationMs}ms`);
     return result;
+  }
+
+  private async getLastSyncTimestamp(entity: string): Promise<string> {
+    const last = await this.prisma.syncLog.findFirst({
+      where: { entity, status: "completed" },
+      orderBy: { finishedAt: "desc" },
+    });
+    return last?.finishedAt
+      ? new Date(last.finishedAt).toISOString()
+      : "1900-01-01T00:00:00Z";
   }
 
   async syncProducts(): Promise<SyncResult> {
@@ -217,8 +225,7 @@ export class FlexTotalService {
       let page = 1;
       let hasMore = true;
 
-      const lastSync = await this.cache.get<string>(LAST_SYNC_KEY_PRODUCTS);
-      const alteradoDesde = lastSync || "1900-01-01T00:00:00Z";
+      const alteradoDesde = await this.getLastSyncTimestamp("products");
 
       while (hasMore) {
         const payload: FlexTotalProdutosRequest = {
@@ -237,8 +244,8 @@ export class FlexTotalService {
 
         for (const p of products) {
           try {
-            const upserted = await this.upsertProduct(p);
-            if (upserted) result.recordsCreated++;
+            const created = await this.upsertProduct(p);
+            if (created) result.recordsCreated++;
             else result.recordsUpdated++;
           } catch (err) {
             result.errors.push(`Produto ${p.sku}: ${(err as Error).message}`);
@@ -250,7 +257,6 @@ export class FlexTotalService {
         page++;
       }
 
-      await this.cache.set(LAST_SYNC_KEY_PRODUCTS, new Date().toISOString());
       await this.cache.invalidate("products:all");
       await this.cache.invalidate("flextotal:products");
       this.eventEmitter.emit("flextotal.sync.products.complete", { records: result.recordsProcessed });
@@ -275,32 +281,40 @@ export class FlexTotalService {
 
     try {
       const now = new Date();
+      let page = 1;
+      let hasMore = true;
 
-      const payload: FlexTotalEstoqueRequest = {
-        DT_INI: "01/01/1900 00:00",
-        DT_FIM: `${now.getDate().toString().padStart(2, "0")}/${(now.getMonth() + 1).toString().padStart(2, "0")}/${now.getFullYear()} ${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`,
-        CD_ITEM: [],
-      };
+      while (hasMore) {
+        const payload: FlexTotalEstoqueRequest = {
+          DT_INI: "01/01/1900 00:00",
+          DT_FIM: `${now.getDate().toString().padStart(2, "0")}/${(now.getMonth() + 1).toString().padStart(2, "0")}/${now.getFullYear()} ${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`,
+          CD_ITEM: [],
+          PAGE: String(page),
+          PAGE_SIZE: String(this.defaultPageSize),
+        };
 
-      const response = await this.callApi<FlexTotalEstoqueResponse>(
-        FLEXTOTAL_CONFIG.endpoints.D15_ESTOQUE,
-        payload,
-      );
+        const response = await this.callApi<FlexTotalEstoqueResponse>(
+          FLEXTOTAL_CONFIG.endpoints.D15_ESTOQUE,
+          payload,
+        );
 
-      const stockItems = Array.isArray(response) ? response : [];
-      result.recordsProcessed = stockItems.length;
+        const stockItems = Array.isArray(response) ? response : [];
+        result.recordsProcessed += stockItems.length;
 
-      for (const s of stockItems) {
-        try {
-          const upserted = await this.upsertStock(s);
-          if (upserted) result.recordsCreated++;
-          else result.recordsUpdated++;
-        } catch (err) {
-          result.errors.push(`Estoque ${s.cd_item}: ${(err as Error).message}`);
+        for (const s of stockItems) {
+          try {
+            const upserted = await this.upsertStock(s);
+            if (upserted) result.recordsCreated++;
+            else result.recordsUpdated++;
+          } catch (err) {
+            result.errors.push(`Estoque ${s.cd_item}: ${(err as Error).message}`);
+          }
         }
+
+        hasMore = stockItems.length >= this.defaultPageSize;
+        page++;
       }
 
-      await this.cache.set(LAST_SYNC_KEY_STOCK, new Date().toISOString());
       await this.cache.invalidate("flextotal:stock");
       this.eventEmitter.emit("flextotal.sync.stock.complete", { records: result.recordsProcessed });
     } catch (err) {
@@ -392,16 +406,28 @@ export class FlexTotalService {
   private async callApi<T>(endpoint: string, payload: unknown): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
     const headers = buildAuthHeaders();
+    const { retryAttempts, retryDelayMs } = FLEXTOTAL_CONFIG.sync;
 
     this.logger.debug(`POST ${url} page=${(payload as any).PAGE}`);
 
-    const { data } = await firstValueFrom(
-      this.httpService.post<T>(url, payload, { headers, timeout: 120000 }),
-    );
+    let lastError: Error | null = null;
+    for (let attempt = 1; attempt <= retryAttempts; attempt++) {
+      try {
+        const { data } = await firstValueFrom(
+          this.httpService.post<T>(url, payload, { headers, timeout: 120000 }),
+        );
+        this.logger.debug(`RESPONSE ${url}: ${JSON.stringify(data).substring(0, 500)}`);
+        return data;
+      } catch (err) {
+        lastError = err as Error;
+        if (attempt < retryAttempts) {
+          this.logger.warn(`callApi tentativa ${attempt}/${retryAttempts} falhou para ${url}: ${lastError.message}. Tentando novamente em ${retryDelayMs}ms...`);
+          await new Promise((r) => setTimeout(r, retryDelayMs));
+        }
+      }
+    }
 
-    this.logger.debug(`RESPONSE ${url}: ${JSON.stringify(data).substring(0, 500)}`);
-
-    return data;
+    throw lastError ?? new Error(`Falha ao chamar ${url}`);
   }
 
   private async upsertClient(data: FlexTotalClientesItem): Promise<boolean> {

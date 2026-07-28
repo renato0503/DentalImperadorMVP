@@ -9,9 +9,14 @@ export class ProductsController {
   @Get()
   async findAll(@Query() query: ProductQueryDto) {
     if (query.categoria) {
-      return this.productsService.findByCategory(query.categoria);
+      return this.productsService.findByCategory(query.categoria, query.skip, query.take);
     }
-    return this.productsService.findAll();
+    return this.productsService.findAll(query.skip, query.take);
+  }
+
+  @Get("categories")
+  async getCategories() {
+    return this.productsService.getCategories();
   }
 
   @Get(":id")

@@ -46,6 +46,18 @@ th { background: var(--cinza-claro); font-weight: 600; }
 .metric-change.negative { color: var(--vermelho-dental); }
 
 .empty-state { color: var(--cinza-medio); text-align: center; padding: 40px; }
+.empty-state-icon { font-size: 48px; margin-bottom: 16px; }
+.empty-state h3 { font-size: 18px; margin-bottom: 8px; color: var(--carbono); }
+.empty-state p { font-size: 14px; margin-bottom: 20px; }
+
+.skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 4px; }
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+.skeleton-row { display: flex; gap: 12px; padding: 12px; border-bottom: 1px solid #f0f0f0; }
+.skeleton-cell { height: 16px; }
+.skeleton-cell-sm { width: 60px; }
+.skeleton-cell-md { width: 120px; }
+.skeleton-cell-lg { width: 200px; }
+.skeleton-cell-full { flex: 1; }
 .form-error { color: var(--vermelho-dental); font-size: 13px; text-align: center; }
 
 .theme-toggle { background: none; border: none; cursor: pointer; font-size: 18px; padding: 4px; color: var(--cinza-medio); min-width: var(--touch-target); min-height: var(--touch-target); display: flex; align-items: center; justify-content: center; }
@@ -97,8 +109,11 @@ th { background: var(--cinza-claro); font-weight: 600; }
 .admin-header-user { font-size: 13px; color: var(--cinza-medio); display: flex; align-items: center; gap: 6px; }
 .admin-main { flex: 1; padding: 24px; overflow-y: auto; }
 
+.table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; margin-bottom: 16px; }
+.table-responsive table { min-width: 600px; }
+
 .admin-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.admin-table th { text-align: left; padding: 10px 12px; background: #f5f5f5; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .5px; color: #666; border-bottom: 2px solid #ddd; }
+.admin-table th { text-align: left; padding: 10px 12px; background: #f5f5f5; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .5px; color: #666; border-bottom: 2px solid #ddd; white-space: nowrap; }
 .admin-table td { padding: 10px 12px; border-bottom: 1px solid #eee; }
 .admin-table tbody tr:hover { background: #fafafa; }
 

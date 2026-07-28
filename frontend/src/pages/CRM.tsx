@@ -11,6 +11,10 @@ interface Customer {
   ultimo_contato: string | null; propensao_compra: number; churn_risk: string;
 }
 
+interface Vendor {
+  uid: string; nome: string; role: string;
+}
+
 const COLUMNS = [
   { id: "lead", title: "Leads" },
   { id: "contato", title: "Contato Inicial" },
@@ -22,10 +26,6 @@ const COLUMNS = [
 
 const TICKET_LABELS: Record<string, string> = { pequeno: "💰 Pequeno", medio: "💎 Médio", grande: "🏆 Grande" };
 const FREQ_LABELS: Record<string, string> = { recorrente: "🔄 Recorrente", sazonal: "📅 Sazonal", inativo: "💤 Inativo" };
-const VENDEDORES = [
-  { uid: "usr-001", nome: "Carlos Vendas" },
-  { uid: "usr-002", nome: "Ana Operadora" },
-];
 
 export function CRMPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -34,6 +34,7 @@ export function CRMPage() {
     COLUMNS.forEach((c) => (m[c.id] = []));
     return m;
   });
+  const [vendors, setVendors] = useState<Vendor[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterVendedor, setFilterVendedor] = useState("");
   const [filterCluster, setFilterCluster] = useState("");
@@ -52,6 +53,12 @@ export function CRMPage() {
   }, [filterVendedor]);
 
   useEffect(() => { fetchCustomers(); }, [fetchCustomers]);
+
+  useEffect(() => {
+    fetch("/api/v1/admin/vendors").then((r) => r.json()).then((data) => {
+      if (Array.isArray(data)) setVendors(data);
+    }).catch(() => {});
+  }, []);
 
   useEffect(() => {
     const map: Record<string, Customer[]> = {};
@@ -104,7 +111,7 @@ export function CRMPage() {
   };
 
   const handleAssign = async (customerId: string, vendedorUid: string) => {
-    const v = VENDEDORES.find((v) => v.uid === vendedorUid);
+    const v = vendors.find((v) => v.uid === vendedorUid);
     try {
       await fetch(`/api/v1/crm/customers/${customerId}/assign`, {
         method: "POST",
@@ -133,7 +140,7 @@ export function CRMPage() {
       <div className="crm-filters" style={{ marginBottom: 16, display: "flex", gap: 8, flexWrap: "wrap" }}>
         <select value={filterVendedor} onChange={(e) => setFilterVendedor(e.target.value)}>
           <option value="">Todos vendedores</option>
-          {VENDEDORES.map((v) => <option key={v.uid} value={v.uid}>{v.nome}</option>)}
+          {vendors.map((v) => <option key={v.uid} value={v.uid}>{v.nome}</option>)}
         </select>
         <select value={filterCluster} onChange={(e) => setFilterCluster(e.target.value)}>
           <option value="">Todos clusters</option>
@@ -215,7 +222,7 @@ export function CRMPage() {
                                 <select className="assign-select" value="" onChange={(e) => { e.stopPropagation(); handleAssign(c.id, e.target.value); }}
                                   onClick={(e) => e.stopPropagation()}>
                                   <option value="">Atribuir</option>
-                                  {VENDEDORES.map((v) => <option key={v.uid} value={v.uid}>{v.nome}</option>)}
+                                  {vendors.map((v) => <option key={v.uid} value={v.uid}>{v.nome}</option>)}
                                 </select>
                               ) : (
                                 <span className="kanban-card-vendedor" title={c.vendedor_nome || ""}>👤 {c.vendedor_nome}</span>

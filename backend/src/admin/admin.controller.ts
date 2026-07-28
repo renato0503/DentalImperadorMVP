@@ -32,4 +32,19 @@ export class AdminController {
   async getSyncStatus(): Promise<SyncStatus> {
     return this.adminService.getSyncStatus();
   }
+
+  @Get("sales-history")
+  async getSalesHistory() {
+    return this.adminService.getSalesHistory();
+  }
+
+  @Get("segment-stats")
+  async getSegmentStats() {
+    return this.adminService.getSegmentStats();
+  }
+
+  @Get("vendors")
+  async getVendors() {
+    return this.adminService.getVendors();
+  }
 }

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useSyncStatus, formatDuration, formatSyncTime, type SyncLogEntry } from "../../hooks/useSync";
 import { showToast } from "../../lib/toast";
 
@@ -12,12 +12,14 @@ const ENTITIES: { type: string; label: string }[] = [
 
 export function SyncPanel() {
   const { statuses, loading, fetchLastSync, triggerSync } = useSyncStatus();
+  const [confirmEntity, setConfirmEntity] = useState<string | null>(null);
 
   useEffect(() => {
     ENTITIES.forEach((e) => fetchLastSync(e.type));
   }, [fetchLastSync]);
 
   const handleSync = async (entity: string) => {
+    setConfirmEntity(null);
     const syncId = await triggerSync(entity);
     if (!syncId) {
       showToast("Erro ao iniciar sincronização");
@@ -54,17 +56,35 @@ export function SyncPanel() {
                 <strong>{label}</strong>
                 <div style={{ fontSize: 13, marginTop: 4 }}>{renderStatus(entry)}</div>
               </div>
-              <button
-                className={`btn btn-sm ${type === "all" ? "btn-primary" : "btn-outline"}`}
-                onClick={() => handleSync(type)}
-                disabled={loading}
-              >
-                {loading ? "..." : "Sincronizar"}
-              </button>
+                <button
+                  className={`btn btn-sm ${type === "all" ? "btn-primary" : "btn-outline"}`}
+                  onClick={() => setConfirmEntity(type)}
+                  disabled={loading}
+                >
+                  {loading ? "..." : "Sincronizar"}
+                </button>
             </div>
           );
         })}
       </div>
+
+      {confirmEntity && (
+        <div className="modal-overlay" onClick={() => setConfirmEntity(null)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 440 }}>
+            <h2>Confirmar sincronização</h2>
+            <p style={{ marginBottom: 20, color: "var(--cinza-medio)", fontSize: 14 }}>
+              Deseja iniciar a sincronização de <strong>{ENTITIES.find(e => e.type === confirmEntity)?.label}</strong> com o ERP FlexTotal?
+              {confirmEntity === "all" && " Esta operação pode levar alguns minutos."}
+            </p>
+            <div className="modal-actions">
+              <button className="btn btn-outline" onClick={() => setConfirmEntity(null)}>Cancelar</button>
+              <button className="btn btn-primary" onClick={() => handleSync(confirmEntity)}>
+                Confirmar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
