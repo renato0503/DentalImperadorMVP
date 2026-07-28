@@ -26,6 +26,16 @@ interface AdminMetrics {
   sla_resposta_chat: string;
 }
 
+interface SalesMonth {
+  mes: string;
+  total: number;
+}
+
+interface SegmentItem {
+  segmento: string;
+  quantidade: number;
+}
+
 interface AdminUser {
   uid: string; email: string; nome: string; papel: string; ultimo_acesso: string | null; ativo: boolean;
 }
@@ -42,22 +52,31 @@ export function AdminDashboard() {
   const [metrics, setMetrics] = useState<AdminMetrics | null>(null);
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [activities, setActivities] = useState<ActivityItem[]>([]);
+  const [salesHistory, setSalesHistory] = useState<SalesMonth[]>([]);
+  const [segments, setSegments] = useState<SegmentItem[]>([]);
   const [loading, setLoading] = useState(true);
   const { statuses, fetchLastSync } = useSyncStatus();
   const barRef = useRef<HTMLCanvasElement>(null);
   const doughnutRef = useRef<HTMLCanvasElement>(null);
   const lineRef = useRef<HTMLCanvasElement>(null);
+  const barChart = useRef<Chart | null>(null);
+  const doughnutChart = useRef<Chart | null>(null);
+  const lineChart = useRef<Chart | null>(null);
 
   const fetchData = async () => {
     try {
-      const [m, u, a] = await Promise.all([
+      const [m, u, a, s, seg] = await Promise.all([
         fetch("/api/v1/admin/metrics").then((r) => r.json()),
         fetch("/api/v1/admin/users").then((r) => r.json()),
         fetch("/api/v1/admin/activity").then((r) => r.json()),
+        fetch("/api/v1/admin/sales-history").then((r) => r.json()),
+        fetch("/api/v1/admin/segment-stats").then((r) => r.json()),
       ]);
       setMetrics(m);
       setUsers(Array.isArray(u) ? u : []);
       setActivities(Array.isArray(a) ? a : []);
+      setSalesHistory(Array.isArray(s) ? s : []);
+      setSegments(Array.isArray(seg) ? seg : []);
     } catch (e) {
       console.error("Erro admin dashboard:", e);
       showToast("Erro ao carregar dados do admin");
@@ -76,20 +95,15 @@ export function AdminDashboard() {
   }, [fetchLastSync]);
 
   useEffect(() => {
-    if (!metrics || !barRef.current) return;
-
-    const barCanvas = barRef.current;
-    const doughnutCanvas = doughnutRef.current;
-    const lineCanvas = lineRef.current;
-    if (!barCanvas || !doughnutCanvas || !lineCanvas) return;
-
-    new Chart(barCanvas, {
+    if (!barRef.current || salesHistory.length === 0) return;
+    if (barChart.current) barChart.current.destroy();
+    barChart.current = new Chart(barRef.current, {
       type: "bar",
       data: {
-        labels: ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul"],
+        labels: salesHistory.map((s) => s.mes),
         datasets: [{
           label: "Vendas",
-          data: [28, 31, 29, 35, 39, 43, 32],
+          data: salesHistory.map((s) => Math.round(s.total / 1000)),
           backgroundColor: "#00A650", borderRadius: 6,
         }],
       },
@@ -98,22 +112,35 @@ export function AdminDashboard() {
         scales: { y: { beginAtZero: true, ticks: { callback: (v) => `R$${v}k` } } },
       },
     });
+  }, [salesHistory]);
 
-    new Chart(doughnutCanvas, {
+  useEffect(() => {
+    if (!doughnutRef.current || segments.length === 0) return;
+    if (doughnutChart.current) doughnutChart.current.destroy();
+    doughnutChart.current = new Chart(doughnutRef.current, {
       type: "doughnut",
       data: {
-        labels: ["Ativos", "Inativos (30d)", "Risco Alto"],
-        datasets: [{ data: [32, 8, 8], backgroundColor: ["#00A650", "#FFD700", "#E31E24"], borderWidth: 0 }],
+        labels: segments.map((s) => s.segmento),
+        datasets: [{
+          data: segments.map((s) => s.quantidade),
+          backgroundColor: ["#00A650", "#FFD700", "#E31E24", "#007A3D", "#6B7280"],
+          borderWidth: 0,
+        }],
       },
       options: { responsive: true, plugins: { legend: { position: "bottom" } } },
     });
+  }, [segments]);
 
-    new Chart(lineCanvas, {
+  useEffect(() => {
+    if (!lineRef.current) return;
+    if (lineChart.current) lineChart.current.destroy();
+    lineChart.current = new Chart(lineRef.current, {
       type: "line",
       data: {
         labels: ["Sem 1", "Sem 2", "Sem 3", "Sem 4", "Sem 5", "Sem 6", "Sem 7"],
         datasets: [{
-          label: "Churn %", data: [22, 20, 18, 16, 15, 14, 18],
+          label: "Churn %",
+          data: [22, 20, 18, 16, 15, 14, 18],
           borderColor: "#E31E24", backgroundColor: "rgba(227,30,36,0.1)",
           fill: true, tension: 0.4, pointRadius: 4,
         }],
@@ -124,9 +151,15 @@ export function AdminDashboard() {
         scales: { y: { beginAtZero: true, max: 30, ticks: { callback: (v) => `${v}%` } } },
       },
     });
+  }, []);
 
-    return () => { Chart.getChart(barCanvas)?.destroy(); Chart.getChart(doughnutCanvas)?.destroy(); Chart.getChart(lineCanvas)?.destroy(); };
-  }, [metrics]);
+  useEffect(() => {
+    return () => {
+      if (barChart.current) barChart.current.destroy();
+      if (doughnutChart.current) doughnutChart.current.destroy();
+      if (lineChart.current) lineChart.current.destroy();
+    };
+  }, []);
 
   const changeRole = async (uid: string, papel: string) => {
     try {

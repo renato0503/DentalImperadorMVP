@@ -22,6 +22,7 @@ export class FlexTotalScheduler {
     for (const entity of entities) {
       const syncId = await this.flextotal.startSync(entity);
       this.logger.log(`[${entity}] Sync disparado — ID: ${syncId}`);
+      await new Promise((r) => setTimeout(r, 5000));
     }
   }
 }

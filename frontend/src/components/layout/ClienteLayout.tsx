@@ -17,12 +17,12 @@ export function ClienteLayout() {
     <div className="cliente-layout">
       <header className="cliente-header">
         <div className="cliente-header-left">
-          <img src="/logodental.png" alt="Dental Imperador" style={{ height: 28, marginRight: 8 }} />
+          <img src="/logodental.png" alt="Dental Imperador" className="cliente-header-logo" />
           <strong>Dental Imperador</strong>
         </div>
         <div className="cliente-header-right">
-          <span style={{ fontSize: 13, color: "var(--cinza-medio)" }}>{userData?.nome}</span>
-          <button className="btn btn-sm btn-outline" onClick={logout} style={{ marginLeft: 12 }}>
+          <span className="cliente-header-user">{userData?.nome}</span>
+          <button className="btn btn-sm btn-outline cliente-header-logout" onClick={logout}>
             Sair
           </button>
         </div>

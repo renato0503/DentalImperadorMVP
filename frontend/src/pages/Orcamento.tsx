@@ -20,13 +20,6 @@ interface CartItem {
   usandoPromocional: boolean;
 }
 
-const CATEGORIAS = [
-  "Restauradores",
-  "Moldagem",
-  "Adesivos",
-  "Anestésicos",
-];
-
 function sanitizeHtml(html: string): string {
   const div = document.createElement("div");
   div.textContent = html;
@@ -35,6 +28,7 @@ function sanitizeHtml(html: string): string {
 
 export function OrcamentoPage() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [categoria, setCategoria] = useState("");
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -44,14 +38,22 @@ export function OrcamentoPage() {
   const [imgErrors, setImgErrors] = useState<Set<string>>(new Set());
 
   useEffect(() => {
+    fetch("/api/v1/products/categories")
+      .then((r) => r.json())
+      .then((data) => { if (Array.isArray(data)) setCategories(data); })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
     const url = categoria
-      ? `/api/v1/products?categoria=${categoria}`
-      : "/api/v1/products";
+      ? `/api/v1/products?categoria=${encodeURIComponent(categoria)}&take=200`
+      : "/api/v1/products?take=200";
 
     fetch(url)
       .then((r) => r.json())
       .then((data) => {
-        setProducts(Array.isArray(data) ? data : []);
+        const list = Array.isArray(data) ? data : data?.data ?? [];
+        setProducts(list);
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -117,7 +119,7 @@ export function OrcamentoPage() {
               onChange={(e) => setCategoria(e.target.value)}
             >
               <option value="">Todas as categorias</option>
-              {CATEGORIAS.map((cat) => (
+              {categories.map((cat) => (
                 <option key={cat} value={cat}>
                   {cat}
                 </option>

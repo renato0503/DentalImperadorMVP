@@ -21,7 +21,11 @@ ENV PORT=8080
 
 EXPOSE 8080
 
-ENV DATABASE_URL=file:./dev.db
-RUN npx prisma db push --accept-data-loss --skip-generate
+ENV DATABASE_URL=${DATABASE_URL:-file:./dev.db}
+RUN if echo "$DATABASE_URL" | grep -q "^postgres"; then \
+      npx prisma migrate deploy --skip-generate; \
+    else \
+      npx prisma db push --accept-data-loss --skip-generate; \
+    fi
 
 CMD ["node", "dist/src/main.js"]
